@@ -1,0 +1,65 @@
+  <section class="section" id="cerebro">
+    <div class="sec-head read cb-head">
+      <p class="eyebrow">Cérebro da IA</p>
+      <h2>O cérebro que responde o WhatsApp da sua <span class="c">assistência</span></h2>
+      <p class="lede">A IA do YAXUM não improvisa. Ela consulta um cérebro de notas ligadas entre si, escrito a partir das perguntas que clientes de assistência técnica fazem todo dia, do celular à geladeira, do ar-condicionado à bicicleta, e responde como uma atendente de balcão. Ela só oferece o que a sua loja faz, põe a segurança na frente quando o assunto é gás, choque ou fumaça, e aprende com as conversas do seu WhatsApp, sem guardar dado pessoal. Os dados da sua loja entram por variáveis, e preço, prazo e estoque vêm do sistema na hora.</p>
+      <dl class="cb-stats" id="cbStats" aria-label="Tamanho do cérebro">{{CB_STATS}}</dl>
+    </div>
+
+    <div class="cb-grid">
+      <div class="glass cb-map">
+        <div class="ui-bar cb-bar">
+          <b>Mapa do cérebro</b>
+          <label class="cb-find"><span class="sr">Buscar nota</span>
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input id="cbFind" type="search" placeholder="Buscar nota: bateria, pix, garantia…" autocomplete="off" maxlength="60">
+          </label>
+        </div>
+        <div class="cb-stage" id="cbStage">
+          <canvas id="cbCanvas" aria-label="Mapa interativo com as notas do cérebro e as ligações entre elas. Clique numa nota para abrir." role="img"></canvas>
+          <div class="cb-zoom" role="group" aria-label="Zoom do mapa">
+            <button type="button" data-z="in" aria-label="Aproximar">+</button>
+            <button type="button" data-z="out" aria-label="Afastar">−</button>
+            <button type="button" data-z="fit" aria-label="Ver o mapa inteiro"><svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+          </div>
+          <p class="cb-carga" id="cbCarga" aria-live="polite">Carregando o mapa…</p>
+          <p class="cb-tip" id="cbTip"><span class="k-desk">Arraste para mover · Ctrl + rolar para zoom · clique numa nota</span><span class="k-touch">Toque numa nota para abrir</span></p>
+          <aside class="cb-note" id="cbNote" hidden aria-live="polite">
+            <div class="cb-note-top">
+              <span class="pill" id="cbNoteCat"></span>
+              <button type="button" class="cb-x" id="cbNoteX" aria-label="Fechar nota">×</button>
+            </div>
+            <h3 id="cbNoteTitle"></h3>
+            <div class="cb-note-body" id="cbNoteBody"></div>
+            <button type="button" class="btn btn-sm cb-ask" id="cbNoteAsk">Perguntar isso no chat</button>
+          </aside>
+        </div>
+        <div class="cb-legend" id="cbLegend" role="group" aria-label="Áreas do cérebro">{{CB_LEGENDA}}</div>
+      </div>
+
+      <div class="glass chat cb-chat">
+        <div class="ui-bar">
+          <span class="chat-who"><span class="avatar">BIA</span><span><b>Bia · Loja Exemplo</b><br><span class="muted small">atendimento automático · demonstração</span></span></span>
+          <span class="cb-head-r"><button type="button" class="cb-ai" id="cbAi" hidden aria-pressed="false" title="Usa um modelo de IA para escrever a resposta a partir das notas do cérebro"><i></i><span>IA completa</span></button><span class="pill ok" id="cbOn">online</span></span>
+        </div>
+        <div class="msgs cb-msgs" id="cbMsgs" aria-live="polite" aria-label="Conversa de demonstração"></div>
+        <div class="cb-sugs" id="cbSugs" aria-label="Sugestões de pergunta"></div>
+        <form class="cb-form" id="cbForm" autocomplete="off">
+          <label class="sr" for="cbIn">Sua pergunta</label>
+          <input id="cbIn" type="text" maxlength="200" placeholder="Pergunte como cliente: quanto fica a tela do iPhone 11?">
+          <button type="submit" class="btn btn-sm">Enviar</button>
+        </form>
+        <p class="cb-legenda"><span class="v v-loja">ciano</span> dado configurado pela loja · <span class="v v-sis">magenta</span> vem do sistema na hora. Loja e valores de exemplo.</p>
+      </div>
+      <div class="read cb-chat-home" id="cbChatHome" hidden><p>A conversa está aberta no canto da tela.</p><button type="button" class="btn btn-sm btn-ghost" id="cbChatBack">Trazer a conversa para cá</button></div>
+    </div>
+
+    <div class="cb-dock" id="cbDock" hidden role="dialog" aria-label="Conversa com a IA do YAXUM"><button type="button" class="cb-x cb-dock-x" id="cbDockX" aria-label="Fechar a conversa">×</button></div>
+    <button type="button" class="cb-fab" id="cbFab" aria-label="Falar com a IA do YAXUM agora"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm3 6.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm5 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm5 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg><span>Falar com a IA</span></button>
+
+    <ul class="cb-how">
+      <li class="read"><b>Escrito como gente</b><span>Mensagens curtas, sem cara de robô, no jeito do cliente. Nada de “prezado cliente”: ela explica, tranquiliza e diz o próximo passo.</span></li>
+      <li class="read"><b>Com os dados da sua loja</b><span>Endereço, horário, garantia e Pix entram uma vez na implantação. Preço, prazo, estoque e status da Ordem de Serviço vêm do YAXUM na hora.</span></li>
+      <li class="read"><b>Sabe a hora de parar</b><span>Nunca inventa preço, não ajuda a burlar bloqueio, não pede senha de banco e, se perguntarem, diz que é o atendimento automático e chama alguém da equipe.</span></li>
+    </ul>
+  </section>

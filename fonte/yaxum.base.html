@@ -1,0 +1,1470 @@
+<title>YAXUM</title>
+<script>
+/* Modo do aparelho, decidido antes de a página aparecer:
+   "leve" = sem o laboratório 3D (imagem parada), para celular e computador
+   antigos, economia de dados ou quem pediu menos movimento. */
+(function(){
+  var d = document.documentElement, leve = false;
+  function ler(k){ try { return localStorage.getItem(k); } catch (e) { return null; } }
+  var escolha = ler("yx-modo");
+  if (location.hash === "#leve") escolha = "leve"; else if (location.hash === "#3d") escolha = "3d";
+  var mm = function(q){ return window.matchMedia && matchMedia(q).matches; };
+  var c = navigator.connection || {}, mem = navigator.deviceMemory || 0, cpu = navigator.hardwareConcurrency || 0;
+  var movel = mm("(pointer: coarse)") || innerWidth < 720;
+  if (escolha === "leve") leve = true;
+  else if (escolha !== "3d") {
+    var auto = +ler("yx-leve-auto");
+    if (mm("(prefers-reduced-motion: reduce)") || c.saveData) leve = true;
+    else if (/(^|-)2g$/.test(c.effectiveType || "") || (movel && c.effectiveType === "3g")) leve = true;
+    else if ((mem && mem <= 2) || (cpu && cpu <= 2) || (movel && mem && mem <= 3)) leve = true;
+    else if (auto && Date.now() - auto < 7 * 864e5) leve = true;
+    else {
+      /* sem placa de vídeo de verdade (só desenho por software), o 3D trava */
+      try {
+        var cv = document.createElement("canvas"), gl = cv.getContext("webgl", { failIfMajorPerformanceCaveat: true });
+        if (!gl) leve = true;
+        else { var lc = gl.getExtension("WEBGL_lose_context"); if (lc) lc.loseContext(); }
+      } catch (e) { leve = true; }
+    }
+  }
+  d.classList.add(leve ? "leve" : "tres");
+  if (movel) d.classList.add("movel");
+  window.YX = { leve: leve, movel: movel, escolha: escolha };
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* YAXUM · cyberpunk / deep space. Single dark theme by design. */
+:root{
+  color-scheme:dark;
+  --bg:#04050C;
+  --panel:rgba(11,14,34,.84);
+  --panel-2:rgba(16,21,50,.9);
+  --line:rgba(130,160,255,.16);
+  --line-2:rgba(0,240,255,.38);
+  --ink:#EAF2FF;
+  --ink-2:#BAC6E6;
+  --muted:#8290B6;
+  --cyan:#00F0FF;
+  --cyan-2:#7DF9FF;
+  --magenta:#FF2BD6;
+  --yellow:#FCEE0A;
+  --violet:#8A6CFF;
+  --rec:#FF3B55;
+  --ok:#3DFFA2;
+  --warn:#FFB020;
+  --display:"Chakra Petch","Barlow",system-ui,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --gutter:clamp(16px,3.6vw,40px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--bg);scroll-padding-top:84px;overflow-x:hidden}
+body{
+  margin:0;color:var(--ink);font-family:var(--body);font-size:17.5px;line-height:1.55;
+  padding-inline:var(--gutter);overflow-x:clip;
+  background:
+    radial-gradient(1100px 620px at 85% -5%,rgba(255,43,214,.20),transparent 60%),
+    radial-gradient(900px 620px at 0% 35%,rgba(0,240,255,.12),transparent 60%),
+    radial-gradient(1px 1px at 20% 30%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 70% 60%,#fff 50%,transparent 51%),
+    radial-gradient(1px 1px at 40% 80%,#9ff 50%,transparent 51%),
+    var(--bg);
+  background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:inherit}
+p{margin:0}
+h1,h2,h3{margin:0;text-wrap:balance}
+:focus-visible{outline:2px solid var(--yellow);outline-offset:3px}
+
+/* fixed 3D space + overlays */
+#space{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(120% 90% at 50% 45%,transparent 45%,rgba(2,3,8,.8) 100%),
+    linear-gradient(90deg,rgba(4,5,12,.55),rgba(4,5,12,.18) 55%,rgba(4,5,12,.3))}
+.scan{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.035) 0 1px,transparent 1px 3px)}
+.nav,main,.foot{position:relative;z-index:2}
+
+.shell{max-width:1220px;margin-inline:auto}
+
+/* ---------- type ---------- */
+.eyebrow{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:"//";color:var(--magenta);font-weight:600}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(40px,5.3vw,74px);line-height:.98;letter-spacing:-.01em}
+h2{font-family:var(--display);font-weight:700;font-size:clamp(32px,4.2vw,56px);line-height:1.02;letter-spacing:-.005em}
+h3{font-family:var(--display);font-weight:600;font-size:20px;line-height:1.2;letter-spacing:.005em}
+.lede{font-size:clamp(17.5px,1.45vw,20px);color:var(--ink-2);max-width:56ch}
+.muted{color:var(--muted)}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+.c{color:var(--cyan);text-shadow:0 0 22px rgba(0,240,255,.55)}
+.m{color:var(--magenta);text-shadow:0 0 22px rgba(255,43,214,.55)}
+
+/* ---------- buttons ---------- */
+.btn{
+  --k:11px;position:relative;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--display);font-weight:700;font-size:15.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:15px 24px;background:var(--yellow);color:#07070A;text-decoration:none;border:0;
+  clip-path:polygon(0 0,calc(100% - var(--k)) 0,100% var(--k),100% 100%,var(--k) 100%,0 calc(100% - var(--k)));
+  transition:transform .15s ease,background-color .15s ease;
+}
+.btn:hover{transform:translateY(-2px);background-color:#FFF65A}
+.btn::after{content:"";position:absolute;right:6px;bottom:5px;width:14px;height:3px;background:#07070A;opacity:.35}
+.btn-ghost{background:rgba(0,240,255,.06);color:var(--cyan);box-shadow:inset 0 0 0 1.5px var(--cyan)}
+.btn-ghost:hover{background-color:rgba(0,240,255,.16)}
+.btn-ghost::after{background:var(--cyan)}
+.btn-sm{padding:10px 16px;font-size:13px;--k:8px}
+.btn-sm::after{display:none}
+
+/* ---------- nav ---------- */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;
+  margin-inline:calc(var(--gutter) * -1);padding-inline:var(--gutter);
+  background:rgba(4,5,12,.62);backdrop-filter:blur(12px) saturate(1.3);-webkit-backdrop-filter:blur(12px) saturate(1.3);
+  border-bottom:1px solid var(--line)}
+.nav::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--magenta),transparent);opacity:.55}
+.nav-in{max-width:1220px;margin-inline:auto;display:flex;align-items:center;gap:28px;height:66px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-family:var(--display);font-weight:700;font-size:21px;letter-spacing:.24em}
+.brand-logo{height:46px;width:auto;display:block}
+.foot .brand-logo{height:40px}
+.brand-mark{width:24px;height:24px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(135deg,var(--cyan),var(--magenta));
+  clip-path:polygon(30% 0,100% 0,100% 70%,70% 100%,0 100%,0 30%)}
+.brand-mark::after{content:"";width:8px;height:8px;border-radius:50%;background:#05060D;box-shadow:inset 0 0 0 2px var(--rec)}
+.nav-links{display:flex;gap:22px;margin-left:auto;font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+.nav-links a{text-decoration:none;color:var(--ink-2)}
+.nav-links a:hover{color:var(--cyan)}
+.nav-cta{display:flex;align-items:center;gap:8px;flex:none}
+.nav-lab{gap:8px}
+@media (max-width:1320px){.nav-lab span{display:none}.nav-lab{padding:9px 11px}}
+@media (max-width:980px){.nav-links{display:none}.nav .nav-cta{margin-left:auto}}
+
+/* ---------- glass panel ---------- */
+.glass{
+  --k:16px;position:relative;background:var(--panel);
+  border:1px solid var(--line);
+  clip-path:polygon(var(--k) 0,100% 0,100% calc(100% - var(--k)),calc(100% - var(--k)) 100%,0 100%,0 var(--k));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 0 40px rgba(0,240,255,.04);
+}
+.glass::before,.glass::after{content:"";position:absolute;width:22px;height:22px;pointer-events:none}
+.glass::before{top:-1px;right:-1px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan)}
+.glass::after{bottom:-1px;left:-1px;border-bottom:2px solid var(--magenta);border-left:2px solid var(--magenta)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border:1px solid var(--line);color:var(--ink-2);white-space:nowrap}
+.pill.rec{color:var(--rec);border-color:rgba(255,59,85,.5);background:rgba(255,59,85,.08)}
+.pill.rec::before,.dot-rec{content:"";width:7px;height:7px;border-radius:50%;background:var(--rec);box-shadow:0 0 10px var(--rec);animation:blink 1.3s steps(1) infinite}
+.pill.ok{color:var(--ok);border-color:rgba(61,255,162,.45);background:rgba(61,255,162,.07)}
+.pill.warn{color:var(--warn);border-color:rgba(255,176,32,.5);background:rgba(255,176,32,.07)}
+.pill.cy{color:var(--cyan);border-color:var(--line-2);background:rgba(0,240,255,.07)}
+.pill.mg{color:var(--magenta);border-color:rgba(255,43,214,.5);background:rgba(255,43,214,.08)}
+.pill.yl{color:#07070A;background:var(--yellow);border-color:var(--yellow)}
+@keyframes blink{50%{opacity:.2}}
+.dot-rec{display:inline-block;flex:none}
+
+/* ---------- hero ---------- */
+.hero{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center;padding-block:clamp(40px,6vw,80px) clamp(56px,8vw,110px)}
+.hero-copy{display:grid;gap:26px;align-content:start}
+.tag{display:inline-flex;align-items:center;gap:10px;justify-self:start;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding:7px 12px;border:1px solid var(--line-2);background:rgba(0,240,255,.05)}
+.tag b{color:var(--cyan);font-weight:600}
+.hero-actions{display:flex;flex-wrap:wrap;gap:14px}
+.hud{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:6px 0 0}
+.hud div{position:relative;padding:12px 14px;border:1px solid var(--line);background:rgba(8,10,26,.6)}
+.hud div::before{content:"";position:absolute;left:-1px;top:-1px;width:10px;height:10px;border-left:2px solid var(--cyan);border-top:2px solid var(--cyan)}
+.hud dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan)}
+.hud dd{margin:5px 0 0;font-size:15px;line-height:1.3;font-weight:600;color:var(--ink)}
+@media (max-width:1020px){.hero{grid-template-columns:1fr}}
+@media (max-width:560px){.hud{grid-template-columns:1fr}}
+
+/* glitch headline */
+.glitch{position:relative}
+.glitch .gl{position:absolute;inset:0;pointer-events:none;opacity:0}
+.glitch .gl-a{color:var(--cyan);transform:translate(-3px,0)}
+.glitch .gl-b{color:var(--magenta);transform:translate(3px,0)}
+.glitch.on .gl-a{animation:gA .7s steps(2) both}
+.glitch.on .gl-b{animation:gB .7s steps(2) both}
+@keyframes gA{
+  0%{opacity:.9;clip-path:inset(0 0 78% 0);transform:translate(-6px,0)}
+  25%{opacity:.9;clip-path:inset(40% 0 38% 0);transform:translate(5px,0)}
+  50%{opacity:.9;clip-path:inset(70% 0 8% 0);transform:translate(-4px,0)}
+  75%{opacity:.9;clip-path:inset(15% 0 60% 0);transform:translate(3px,0)}
+  100%{opacity:0;clip-path:inset(0 0 100% 0)}
+}
+@keyframes gB{
+  0%{opacity:.85;clip-path:inset(60% 0 12% 0);transform:translate(6px,0)}
+  25%{opacity:.85;clip-path:inset(5% 0 70% 0);transform:translate(-5px,0)}
+  50%{opacity:.85;clip-path:inset(30% 0 45% 0);transform:translate(4px,0)}
+  75%{opacity:.85;clip-path:inset(80% 0 2% 0);transform:translate(-3px,0)}
+  100%{opacity:0;clip-path:inset(0 0 100% 0)}
+}
+
+/* 3D stage */
+.stage{position:relative;height:660px;perspective:1500px;perspective-origin:50% 40%}
+.stage-in{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateX(6deg) rotateY(-16deg)}
+.pad{position:absolute;left:50%;bottom:14px;width:430px;height:430px;margin-left:-215px;border-radius:50%;
+  transform:translateY(160px) rotateX(90deg) translateZ(0);
+  background:
+    radial-gradient(circle,rgba(0,240,255,.35) 0 8%,transparent 9%),
+    repeating-radial-gradient(circle,rgba(0,240,255,.0) 0 26px,rgba(0,240,255,.45) 27px 28px),
+    radial-gradient(circle,rgba(255,43,214,.25),transparent 70%);
+  box-shadow:0 0 60px rgba(0,240,255,.25)}
+.beam{position:absolute;left:50%;bottom:120px;width:300px;height:520px;margin-left:-150px;
+  background:linear-gradient(to top,rgba(0,240,255,.16),transparent 80%);
+  clip-path:polygon(18% 100%,82% 100%,100% 0,0 0);transform:translateZ(-20px);pointer-events:none}
+.floaty{position:absolute;left:56%;top:6px;margin-left:-141px;transform-style:preserve-3d;transform:translateZ(60px)}
+.bob{animation:bob 6s ease-in-out infinite;transform-style:preserve-3d}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+/* phone */
+.phone{position:relative;width:282px;border-radius:42px;padding:10px;background:#05060A;
+  box-shadow:0 0 0 1px rgba(0,240,255,.35),0 0 30px rgba(0,240,255,.25),0 40px 70px -20px rgba(0,0,0,.8)}
+.phone::before{content:"";position:absolute;top:17px;left:50%;translate:-50% 0;width:84px;height:24px;border-radius:14px;background:#05060A;z-index:3}
+.screen{border-radius:33px;overflow:hidden;background:#070A18;display:grid;gap:10px;padding:14px 14px 16px;color:var(--ink)}
+.sb{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;padding:2px 12px 0;height:22px}
+.sb-bat{width:22px;height:11px;border:1.5px solid currentColor;border-radius:3px;position:relative;margin-top:3px;opacity:.8}
+.sb-bat::after{content:"";position:absolute;inset:1.5px;right:6px;background:currentColor}
+.url{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.06);border-radius:9px;padding:6px 10px}
+.os-store{font-size:11.5px;color:var(--muted)}
+.os-title{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.1;color:#fff}
+.os-sub{font-size:13px;color:var(--ink-2)}
+.live{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:16/9;background:#10333F;box-shadow:0 0 0 1px rgba(0,240,255,.3)}
+.live svg{display:block;width:100%;height:100%}
+.live-tag{position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.6);color:#fff;font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;padding:4px 7px}
+.live-tag i{width:7px;height:7px;border-radius:50%;background:var(--rec);box-shadow:0 0 8px var(--rec);animation:blink 1.3s steps(1) infinite}
+.live-time{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.6);color:#fff;font-family:var(--mono);font-size:9.5px;padding:4px 6px;font-variant-numeric:tabular-nums}
+.live-who{position:absolute;left:8px;bottom:8px;color:#fff;font-size:10.5px;font-weight:600;text-shadow:0 1px 3px #000}
+.tweezer{animation:tw 3.2s ease-in-out infinite;transform-origin:280px 160px}
+@keyframes tw{0%,100%{transform:translate(0,0) rotate(0)}40%,60%{transform:translate(-9px,-6px) rotate(-3deg)}}
+.steps{list-style:none;margin:2px 0 0;padding:0 2px;display:grid}
+.steps li{position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0 6px 24px;font-size:13px;color:var(--ink-2)}
+.steps li::before{content:"";position:absolute;left:0;top:50%;translate:0 -50%;width:13px;height:13px;border-radius:50%;border:1.5px solid rgba(255,255,255,.25);background:#070A18;z-index:1}
+.steps li::after{content:"";position:absolute;left:6px;top:0;bottom:0;width:1.5px;background:rgba(255,255,255,.12)}
+.steps li:first-child::after{top:50%}
+.steps li:last-child::after{bottom:50%}
+.steps time{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.steps .done::before{background:var(--ok);border-color:var(--ok);box-shadow:0 0 8px rgba(61,255,162,.6)}
+.steps .done::after{background:rgba(61,255,162,.6)}
+.steps .now{color:#fff;font-weight:600}
+.steps .now::before{background:var(--cyan);border-color:var(--cyan);box-shadow:0 0 0 4px rgba(0,240,255,.25),0 0 10px rgba(0,240,255,.7);animation:pulse 1.6s ease-in-out infinite}
+.steps .now time{color:var(--cyan)}
+.steps .pending{color:var(--muted)}
+@keyframes pulse{50%{opacity:.4}}
+.phone-btn{display:flex;justify-content:center;align-items:center;background:var(--yellow);color:#07070A;padding:11px;font-size:13px;font-weight:700;font-family:var(--display);letter-spacing:.08em;text-transform:uppercase;border-radius:10px}
+
+/* hologram ticket + chips */
+.holo{
+  position:absolute;width:228px;padding:16px 16px 30px;font-family:var(--mono);font-size:10px;line-height:1.6;color:#C5FCFF;
+  background:
+    repeating-linear-gradient(to bottom,rgba(0,240,255,.07) 0 1px,transparent 1px 3px),
+    linear-gradient(180deg,rgba(0,240,255,.16),rgba(0,240,255,.04));
+  border:1px solid rgba(0,240,255,.5);text-shadow:0 0 8px rgba(0,240,255,.55);
+  box-shadow:0 0 30px rgba(0,240,255,.18);
+  -webkit-mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;
+          mask:conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) 50%/12px 100%;
+}
+.holo.ticket{right:-40px;top:190px;transform:translateZ(-90px) rotateY(10deg)}
+.holo .t-h{font-weight:600;font-size:11px;letter-spacing:.14em;text-align:center;color:#fff}
+.holo .t-store{text-align:center;opacity:.75;margin-bottom:6px}
+.holo .t-row{display:flex;justify-content:space-between}
+.holo hr{border:0;border-top:1px dashed rgba(0,240,255,.5);margin:8px 0}
+.holo dl{margin:0;display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:2px}
+.holo dt{opacity:.7}
+.holo dd{margin:0;text-align:right}
+.t-qr{display:flex;gap:10px;align-items:center}
+.t-qr canvas{width:75px;height:75px;image-rendering:pixelated;flex:none;filter:drop-shadow(0 0 4px rgba(0,240,255,.6))}
+.t-qr p{font-size:9.5px;line-height:1.45}
+.chip{position:absolute;display:flex;align-items:center;gap:10px;padding:10px 13px;font-size:13px;line-height:1.3;white-space:nowrap;
+  background:rgba(8,10,28,.9);border:1px solid var(--line-2);box-shadow:0 0 24px rgba(0,240,255,.2);
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)}
+.chip b{font-weight:600}
+.chip small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan)}
+.chip .ic{width:28px;height:28px;display:grid;place-items:center;flex:none;background:rgba(0,240,255,.12);color:var(--cyan)}
+.chip.mgc{border-color:rgba(255,43,214,.55);box-shadow:0 0 24px rgba(255,43,214,.22)}
+.chip.mgc small{color:var(--magenta)}
+.chip.mgc .ic{background:rgba(255,43,214,.14);color:var(--magenta)}
+.chip-a{left:-30px;top:120px;transform:translateZ(140px)}
+.chip-b{left:-10px;top:470px;transform:translateZ(110px)}
+.chip-c{right:10px;top:40px;transform:translateZ(40px)}
+@media (max-width:1180px) and (min-width:1021px){.chip-a,.chip-b{left:-40px}}
+@media (max-width:620px){
+  .stage{height:610px;perspective:1100px}
+  .floaty{left:50%;transform:translateZ(40px) scale(.92);transform-origin:50% 0}
+  .holo.ticket{right:-30px;top:250px;transform:translateZ(-120px) rotateY(10deg) scale(.85)}
+  .chip-a{left:50%;margin-left:-118px;top:556px}
+  .chip-b,.chip-c{display:none}
+  .pad{width:340px;height:340px;margin-left:-170px}
+}
+
+/* ---------- sections ---------- */
+.section{position:relative;padding-block:clamp(72px,10vw,140px)}
+.section::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(0,240,255,.4),rgba(255,43,214,.4),transparent)}
+.sec-head{display:grid;gap:18px;max-width:780px;margin-bottom:clamp(34px,4vw,56px)}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,5vw,76px);align-items:center}
+.split.rev>:first-child{order:2}
+@media (max-width:940px){.split{grid-template-columns:1fr}.split.rev>:first-child{order:0}}
+[data-tilt],[data-par]{will-change:transform;transform-origin:50% 50%}
+
+/* bench ui */
+.ui-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line);font-size:14.5px}
+.ui-bar b{font-family:var(--display);font-weight:600;letter-spacing:.02em}
+.queue,.status-pick{padding:14px 18px;display:grid;gap:8px}
+.status-pick{border-top:1px solid var(--line)}
+.q-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.q-row{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);font-size:14.5px;background:rgba(255,255,255,.02)}
+.q-row>.mono{font-size:12px;color:var(--muted)}
+.q-active{border-color:var(--cyan);background:rgba(0,240,255,.07);box-shadow:0 0 18px rgba(0,240,255,.15)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg span{font-size:12.5px;padding:6px 10px;border:1px solid var(--line);color:var(--muted)}
+.seg .is-done{color:var(--ok);border-color:rgba(61,255,162,.35);background:rgba(61,255,162,.06)}
+.seg .is-now{background:var(--cyan);border-color:var(--cyan);color:#021018;font-weight:700}
+.hint{font-size:13px;color:var(--muted)}
+.ui-actions{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 18px}
+.fake-btn{display:inline-flex;align-items:center;font-family:var(--display);font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:9px 13px;background:var(--yellow);color:#07070A}
+.fake-btn.ghost{background:transparent;color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan)}
+@media (max-width:480px){.q-row{grid-template-columns:36px minmax(0,1fr)}.q-row .pill{grid-column:2;justify-self:start}}
+
+.howto{list-style:none;margin:30px 0 0;padding:0;display:grid;counter-reset:s}
+.howto li{counter-increment:s;display:grid;grid-template-columns:48px 1fr;gap:4px 14px;padding:16px 0;border-top:1px solid var(--line)}
+.howto li::before{content:"0" counter(s);grid-row:span 2;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--cyan);width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--line-2);background:rgba(0,240,255,.06);clip-path:polygon(25% 0,100% 0,100% 75%,75% 100%,0 100%,0 25%)}
+.howto h3{font-size:18px}
+.howto p{color:var(--muted);font-size:15.5px}
+
+/* chat */
+.chat{max-width:520px;width:100%;justify-self:center}
+.chat-who{display:flex;align-items:center;gap:10px;line-height:1.25}
+.avatar{width:36px;height:36px;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none;color:#021018;background:linear-gradient(135deg,var(--cyan),var(--magenta));clip-path:polygon(25% 0,100% 0,100% 75%,75% 100%,0 100%,0 25%)}
+.small{font-size:12.5px}
+.summary{margin:14px 14px 0;padding:12px 14px;background:rgba(255,43,214,.08);border:1px solid rgba(255,43,214,.35)}
+.sum-h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;margin-bottom:6px;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.summary ul{margin:0;padding-left:18px;font-size:14px;line-height:1.5;color:var(--ink-2)}
+.msgs{display:grid;gap:8px;padding:14px}
+.msg{max-width:84%;padding:8px 11px 6px;font-size:14px;line-height:1.42;overflow-wrap:anywhere}
+.msg time{display:block;text-align:right;font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:3px}
+.msg.in{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);justify-self:start;border-radius:2px 10px 10px 10px}
+.msg.out{background:rgba(0,240,255,.10);border:1px solid rgba(0,240,255,.3);justify-self:end;border-radius:10px 2px 10px 10px}
+.msg.out time{color:var(--cyan-2);opacity:.8}
+.msg.media{padding:4px 4px 6px;max-width:76%;display:grid;gap:4px}
+.msg.media svg{display:block;width:100%;height:auto;border-radius:7px}
+.msg.media .cap{padding:2px 7px 0}
+.msg.media time{padding-right:7px}
+.sys{justify-self:center;text-align:center;font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--yellow);border:1px dashed rgba(252,238,10,.5);padding:4px 9px;margin-top:4px}
+.feat{margin:30px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px}
+.feat div{padding:16px 0;border-top:1px solid var(--line)}
+.feat dt{font-family:var(--display);font-weight:600;font-size:17.5px;color:#fff}
+.feat dt::before{content:"▸ ";color:var(--cyan)}
+.feat dd{margin:4px 0 0;color:var(--muted);font-size:15.5px}
+@media (max-width:560px){.feat{grid-template-columns:1fr}}
+
+/* funnel */
+.funnel{padding:clamp(18px,3vw,36px)}
+.f-start{max-width:400px;margin-inline:auto;display:grid;gap:6px;padding:14px 18px;border:1px solid var(--cyan);background:rgba(0,240,255,.07);box-shadow:0 0 30px rgba(0,240,255,.18)}
+.f-start p{font-size:15px}
+.lanes{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding-top:42px}
+.lanes::before{content:"";position:absolute;top:21px;left:calc((100% - 32px) / 6);right:calc((100% - 32px) / 6);height:2px;background:linear-gradient(90deg,var(--ok),var(--cyan),var(--magenta));box-shadow:0 0 12px rgba(0,240,255,.6)}
+.lanes::after{content:"";position:absolute;top:0;left:50%;width:2px;height:21px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.lane{position:relative;padding:16px 16px 6px;border:1px solid var(--line);background:rgba(8,10,26,.7)}
+.lane::before{content:"";position:absolute;top:-21px;left:50%;width:2px;height:20px;background:var(--lc,var(--cyan));box-shadow:0 0 10px var(--lc,var(--cyan))}
+.lane.l-ok{--lc:var(--ok)}
+.lane.l-mg{--lc:var(--magenta)}
+.lane-h{display:flex;align-items:center;gap:9px;font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:10px;color:var(--lc,var(--cyan))}
+.lane-steps{list-style:none;margin:0;padding:0;display:grid}
+.lane-steps li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px;line-height:1.45;color:var(--ink-2)}
+.lane-steps time{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding-top:3px;text-transform:uppercase;letter-spacing:.04em}
+.lane-steps .end{color:#fff;font-weight:600}
+.lane-steps .end.ok p,.lane-steps .end.ok time{color:var(--ok)}
+.f-note{margin-top:18px;font-size:14px;color:var(--muted)}
+@media (max-width:880px){.lanes{grid-template-columns:1fr;padding-top:16px;gap:12px}.lanes::before,.lanes::after,.lane::before{display:none}}
+
+/* modules */
+.mods{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:1040px){.mods{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){.mods{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mod{display:grid;gap:12px;align-content:start;height:100%;text-decoration:none;padding:18px 18px 20px;transition:border-color .2s,background-color .2s}
+a.mod:hover{border-color:var(--cyan);background-color:rgba(12,20,48,.92)}
+.mod-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.code{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);border:1px solid var(--line-2);padding:3px 7px}
+.mod-id{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.mod h3{font-size:18.5px;color:#fff}
+.mod p{font-size:14.5px;color:var(--muted);line-height:1.45}
+@media (max-width:480px){.mods{gap:10px}.mod{padding:14px 12px 16px}.mod p{font-size:13.5px}.mod-id{display:none}}
+
+/* orders */
+.track{list-style:none;margin:30px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:t}
+.track li{counter-increment:t;display:grid;gap:4px;align-content:start;padding-top:14px;border-top:2px solid rgba(255,255,255,.2);font-size:14.5px}
+.track li:nth-child(2){border-top-color:var(--cyan);box-shadow:0 -6px 12px -8px var(--cyan)}
+.track li:last-child{border-top-color:var(--ok);box-shadow:0 -6px 12px -8px var(--ok)}
+.track b{font-family:var(--display);font-size:16.5px;color:#fff}
+.track b::before{content:"0" counter(t) " ";font-family:var(--mono);font-size:12px;color:var(--cyan);font-weight:500}
+.track span{color:var(--muted)}
+@media (max-width:560px){.track{grid-template-columns:1fr}}
+.o-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:13px 18px;border-top:1px solid var(--line);align-items:center}
+.ui-bar+.o-row{border-top:0}
+.o-name{font-weight:600;font-size:15.5px;color:#fff}
+.o-prod{font-size:14px;color:var(--muted)}
+.o-right{display:grid;justify-items:end;gap:6px}
+.o-when{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+.notify{padding:14px 18px 18px;border-top:1px solid var(--line);display:grid;gap:10px;background:rgba(0,240,255,.03)}
+.notify .msg{max-width:94%}
+@media (max-width:420px){.o-row{grid-template-columns:1fr}.o-right{justify-items:start;grid-auto-flow:column;justify-content:start;align-items:center;gap:10px}}
+
+/* pos */
+.pos{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:clamp(24px,4vw,48px);align-items:start}
+@media (max-width:980px){.pos{grid-template-columns:1fr}}
+.receipt-wrap{justify-self:center;width:100%;max-width:400px}
+.holo.receipt{position:relative;width:100%;font-size:11.5px;line-height:1.7;padding:24px 22px 40px;background-color:rgba(5,9,22,.95)}
+.holo .r-h{text-align:center;font-weight:600;letter-spacing:.14em;font-size:12.5px;color:#fff}
+.holo .r-sub{text-align:center;opacity:.75}
+.r-line{display:flex;justify-content:space-between;gap:12px}
+.r-line span:last-child{white-space:nowrap}
+.r-note{opacity:.65;padding-left:2ch;font-size:10.5px}
+.r-total{font-weight:600;font-size:15px;color:#fff}
+.r-pts{background:var(--magenta);color:#fff;padding:0 6px;text-shadow:none}
+.r-foot{text-align:center;opacity:.7;margin-top:14px}
+.pos-side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+.pos-side .club{grid-column:1 / -1}
+@media (max-width:1140px) and (min-width:981px){.pos-side{grid-template-columns:1fr}}
+@media (max-width:660px){.pos-side{grid-template-columns:1fr}}
+.club{padding:20px 22px 10px}
+.club-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.club-top b{font-family:var(--display);font-size:17px}
+.club-name{font-size:14px;color:var(--muted);margin-top:12px}
+.club-pts{font-family:var(--display);font-weight:700;font-size:clamp(50px,6vw,72px);line-height:1;color:#fff;text-shadow:0 0 28px rgba(255,43,214,.7),0 0 2px #fff}
+.club-pts small{font-size:.3em;font-weight:600;color:var(--magenta);margin-left:8px;text-shadow:none;letter-spacing:.1em}
+.bar{height:8px;background:rgba(255,255,255,.08);margin-top:16px;position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,var(--cyan),var(--magenta));box-shadow:0 0 14px rgba(255,43,214,.6)}
+.bar-cap{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;margin-top:8px;color:var(--muted)}
+.bar-cap .mono{font-size:11px}
+.rewards{list-style:none;margin:14px 0 0;padding:0;display:grid}
+.rewards li{display:grid;grid-template-columns:80px minmax(0,1fr) auto;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px;align-items:center}
+.rewards .mono{font-size:11px;color:var(--cyan)}
+@media (max-width:420px){.rewards li{grid-template-columns:72px minmax(0,1fr)}.rewards .pill{grid-column:2;justify-self:start}}
+.s-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 18px;border-top:1px solid var(--line);font-size:14.5px}
+.ui-bar+.s-row{border-top:0}
+.s-qty{font-family:var(--mono);font-size:12px;color:var(--cyan)}
+.s-foot{padding:10px 18px 16px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+.xml pre{margin:0;padding:14px 18px;font-family:var(--mono);font-size:11px;line-height:1.7;overflow-x:auto;color:#fff;background:rgba(0,0,0,.3)}
+.x-t{color:var(--magenta)}
+.x-a{color:var(--cyan)}
+
+/* agenda */
+.week .ui-bar{flex-wrap:wrap}
+.legend{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+.lg{display:inline-flex;align-items:center;gap:7px}
+.lg::before{content:"";width:9px;height:9px;flex:none}
+.lg-visit::before{background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
+.lg-pick::before{background:var(--yellow);box-shadow:0 0 8px var(--yellow)}
+.lg-class::before{background:var(--magenta);box-shadow:0 0 8px var(--magenta)}
+.days{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+.day{border-left:1px solid var(--line);display:grid;grid-template-rows:auto 1fr;min-height:250px}
+.day:first-child{border-left:0}
+.d-h{padding:10px 12px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
+.d-h b{color:#fff;font-weight:600}
+.evs{display:grid;gap:8px;padding:10px;align-content:start}
+.ev{display:grid;gap:2px;padding:9px 10px;border:1px solid var(--line);background:rgba(255,255,255,.03);font-size:13px;line-height:1.35}
+.ev-k time{font-family:var(--mono);font-size:10.5px;color:var(--ink-2)}
+.ev b{font-weight:600;color:#fff}
+.ev>span:not(.ev-k){color:var(--muted)}
+.st{font-style:normal;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;margin-top:5px;color:var(--muted)}
+.st.ok{color:var(--ok)}
+.st.wait{color:var(--warn)}
+.st.full{color:var(--magenta)}
+@media (max-width:1000px){
+  .days{grid-template-columns:1fr}
+  .day{grid-template-columns:72px minmax(0,1fr);grid-template-rows:none;min-height:0;border-left:0;border-top:1px solid var(--line)}
+  .day:first-child{border-top:0}
+  .d-h{border-bottom:0;padding-top:16px;display:grid;align-content:start;gap:2px}
+  .d-h b{font-size:20px;font-family:var(--display)}
+}
+
+/* pricing */
+.example-note{justify-self:start;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow);border:1px dashed rgba(252,238,10,.6);padding:5px 9px}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+.plan{display:grid;grid-template-rows:auto auto auto 1fr auto;gap:16px;padding:28px 24px 24px}
+.plan h3{font-size:24px;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.plan-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.plan .for{color:var(--muted);font-size:15px}
+.price{font-family:var(--display);font-weight:700;font-size:54px;line-height:1;display:flex;align-items:baseline;gap:6px;color:#fff;font-variant-numeric:tabular-nums}
+.price span{font-size:18px;color:var(--cyan)}
+.price small{font-family:var(--body);font-size:15px;font-weight:500;color:var(--muted)}
+.plan ul{list-style:none;margin:0;padding:18px 0 0;display:grid;gap:9px;font-size:15px;border-top:1px solid var(--line);align-content:start;color:var(--ink-2)}
+.plan li{display:grid;grid-template-columns:16px minmax(0,1fr);gap:10px;line-height:1.4}
+.plan li::before{content:"";width:8px;height:8px;margin-top:7px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);transform:rotate(45deg)}
+.plan .btn{width:100%}
+.plan-wrap{position:relative;display:grid}
+.plan-wrap.hot{padding:2px;clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);
+  background:conic-gradient(from var(--a,0deg),var(--cyan),var(--magenta),var(--yellow),var(--cyan));animation:spin 6s linear infinite}
+.plan-wrap.hot .plan{background:rgba(9,11,30,.97);--k:17px}
+.plan-wrap.hot .price{text-shadow:0 0 26px rgba(0,240,255,.6)}
+@property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes spin{to{--a:360deg}}
+@media (max-width:940px){.plans{grid-template-columns:1fr}}
+
+/* faq */
+.faq{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:clamp(24px,5vw,72px);align-items:start}
+.qa{margin:0;display:grid}
+.qa>div{padding:16px 0;border-top:1px solid var(--line)}
+.qa>div:first-child{border-top:0;padding-top:0}
+.qa>div:last-child{padding-bottom:0}
+.qa dt{font-family:var(--display);font-weight:600;font-size:19px;color:#fff}
+.qa dd{margin:6px 0 0;color:var(--muted);max-width:62ch}
+@media (max-width:880px){.faq{grid-template-columns:1fr}}
+
+/* cta */
+.cta{position:relative;overflow:hidden;margin-top:clamp(24px,4vw,40px);padding:clamp(34px,6vw,80px);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:end;
+  border:1px solid var(--line-2);background:linear-gradient(180deg,rgba(20,8,40,.85),rgba(4,5,12,.9));
+  clip-path:polygon(24px 0,100% 0,100% calc(100% - 24px),calc(100% - 24px) 100%,0 100%,0 24px)}
+.cta::before{content:"";position:absolute;left:-50%;right:-50%;bottom:0;height:100%;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,43,214,.55) 1.5px,transparent 1.5px),linear-gradient(90deg,rgba(255,43,214,.55) 1.5px,transparent 1.5px);
+  background-size:60px 60px;transform:perspective(500px) rotateX(52deg);transform-origin:50% 100%;
+  -webkit-mask:linear-gradient(to top,#000 5%,transparent 80%);mask:linear-gradient(to top,#000 5%,transparent 80%);
+  animation:grid 2.4s linear infinite}
+@keyframes grid{to{background-position:0 60px,0 0}}
+.cta>*{position:relative;z-index:1}
+.cta h2{max-width:18ch;text-shadow:0 0 30px rgba(255,43,214,.35)}
+.cta p{color:var(--ink-2);margin-top:16px;max-width:50ch;font-size:17.5px}
+.cta-num{display:block;margin-top:10px;color:var(--cyan);font-family:var(--mono);font-size:15px;user-select:all}
+@media (max-width:760px){.cta{grid-template-columns:1fr;align-items:start}}
+.foot{max-width:1220px;margin-inline:auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px 24px;padding-block:32px 44px;color:var(--muted);font-size:14px}
+.foot .brand{font-size:18px}
+
+
+/* the last scroll ends on the logo, with nothing on top */
+.fim-logo{position:relative;z-index:2;height:118vh;pointer-events:none}
+.nav{transition:opacity .5s ease}
+html.fim .nav{opacity:0;pointer-events:none}
+
+/* walk the lab */
+main,.foot,.vignette{transition:opacity .45s ease,visibility 0s linear 0s}
+html.explorar{overflow:hidden}
+html.explorar main,html.explorar .foot{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .45s ease,visibility 0s linear .45s}
+html.explorar .nav-lab{display:none}
+html.explorar .vignette{opacity:.25}
+html.explorar #space{pointer-events:auto;cursor:grab;touch-action:none}
+.ex-hud{position:fixed;inset:0;z-index:50;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;gap:16px;
+  padding:calc(80px + env(safe-area-inset-top,0px)) var(--gutter) calc(16px + env(safe-area-inset-bottom,0px))}
+.ex-hud>*{pointer-events:auto}
+.ex-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ex-title{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:9px 13px;background:rgba(4,5,12,.86);border:1px solid var(--line-2)}
+.ex-title #exNear{color:var(--cyan)}
+.ex-sep{color:var(--magenta)}
+.ex-bottom{display:grid;gap:10px;justify-items:center}
+.ex-help{font-family:var(--mono);font-size:12px;color:var(--ink-2);background:rgba(4,5,12,.86);padding:7px 11px;border:1px solid var(--line);text-align:center}
+.ex-help .k-touch{display:none}
+.ex-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:960px}
+.ex-chips button{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:9px 12px;background:rgba(4,5,12,.88);color:var(--cyan);border:1px solid var(--line-2);cursor:pointer}
+.ex-chips button:hover{background:rgba(0,240,255,.16)}
+.ex-pad{display:none;grid-template-columns:repeat(3,52px);gap:6px}
+.ex-pad button{width:52px;height:52px;background:rgba(4,5,12,.88);border:1px solid var(--line-2);color:var(--cyan);font-size:18px;touch-action:none;cursor:pointer}
+.ex-pad button:active{background:rgba(0,240,255,.2)}
+.ex-card{position:fixed;z-index:51;left:0;top:0;width:min(410px,calc(100vw - 2 * var(--gutter)));padding:20px 24px 26px 30px;will-change:transform;
+  background:radial-gradient(ellipse 72% 70% at 42% 48%,rgba(3,4,10,.8),rgba(3,4,10,.55) 55%,rgba(3,4,10,0) 80%);
+  text-shadow:0 0 12px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.95)}
+.ex-txt{display:grid;gap:7px}
+.ex-hole{position:absolute;left:10px;top:18px;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,#000 0 40%,rgba(0,0,0,0) 43%),conic-gradient(from 0deg,var(--magenta),var(--cyan),#fff,var(--yellow),var(--magenta));
+  -webkit-mask:radial-gradient(circle,#000 0 58%,transparent 70%);mask:radial-gradient(circle,#000 0 58%,transparent 70%);
+  box-shadow:0 0 22px rgba(255,43,214,.9),0 0 48px rgba(0,240,255,.5);
+  animation:holeIn .5s cubic-bezier(.2,1.4,.3,1) both,holeSpin 1s linear infinite,holeRest .6s ease 1.9s forwards}
+@keyframes holeIn{from{transform:scale(0)}to{transform:scale(1.35)}}
+@keyframes holeSpin{to{rotate:360deg}}
+@keyframes holeRest{to{transform:scale(.55);opacity:.8}}
+.ex-code{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--magenta);padding-left:26px}
+.ex-card h3{font-size:clamp(26px,2.4vw,34px);color:#fff;letter-spacing:.02em;line-height:1.05;text-shadow:0 0 18px rgba(0,240,255,.55),0 0 3px #000}
+.ex-desc{font-size:15.5px;color:#e6eeff}
+.ex-sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-top:6px}
+.ex-eq{font-size:13.5px;color:var(--ink);line-height:1.6}
+.ex-eq .sep{color:var(--magenta);margin:0 4px}
+.ex-yx{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.ex-yx li{display:grid;grid-template-columns:12px 1fr;gap:9px;font-size:14px;line-height:1.45;color:#dfe8ff}
+.ex-yx li::before{content:"";width:7px;height:7px;margin-top:6px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);transform:rotate(45deg)}
+.ex-card .btn{justify-self:start;margin-top:8px;text-shadow:none}
+.ex-card .w{display:inline-block;white-space:nowrap}
+.ex-card .ch,.ex-card .wd{display:inline-block;opacity:0}
+.ex-card.go .ch,.ex-card.go .wd{animation:emerge .95s cubic-bezier(.16,.8,.24,1) both;animation-delay:var(--d,0s)}
+@keyframes emerge{
+  0%{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(0) rotate(var(--r,0deg));filter:blur(5px)}
+  30%{opacity:1}
+  100%{opacity:1;transform:none;filter:blur(0)}
+}
+.ex-card.sai .ch,.ex-card.sai .wd{opacity:1;animation:suck .4s cubic-bezier(.6,0,.8,.4) both;animation-delay:0s}
+@keyframes suck{from{opacity:1;transform:none}to{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(0) rotate(var(--r,0deg))}}
+.ex-card.sai .ex-hole{animation:holeOut .45s ease-in both}
+@keyframes holeOut{from{transform:scale(.8)}50%{transform:scale(1.4)}to{transform:scale(0);opacity:0}}
+@media (max-width:700px){
+  .ex-card{transform:none!important;top:calc(184px + env(safe-area-inset-top,0px));left:var(--gutter);right:var(--gutter);width:auto;max-height:max(190px,calc(100vh - 520px));overflow:auto;padding:14px 16px 18px 26px;
+    background:radial-gradient(ellipse 90% 80% at 45% 45%,rgba(3,4,10,.86),rgba(3,4,10,.6) 60%,rgba(3,4,10,0) 90%)}
+  .ex-card h3{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){.ex-card .ch,.ex-card .wd{opacity:1}}
+@media (pointer:coarse){.ex-pad{display:grid}.ex-help .k-desk{display:none}.ex-help .k-touch{display:inline}}
+@media (max-width:560px){.ex-chips button{padding:7px 9px;font-size:10.5px}}
+
+/* readable panels for text over the 3D lab */
+.read{position:relative;padding:clamp(20px,2.6vw,34px);background:linear-gradient(180deg,rgba(7,9,24,.9),rgba(5,6,16,.86));border:1px solid var(--line);
+  clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.read::before{content:"";position:absolute;top:-1px;right:-1px;width:22px;height:22px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan);pointer-events:none}
+.read::after{content:"";position:absolute;bottom:-1px;left:-1px;width:22px;height:22px;border-bottom:2px solid var(--magenta);border-left:2px solid var(--magenta);pointer-events:none}
+.sec-head.read{justify-self:start}
+.read .sec-head{margin-bottom:0}
+.read .howto li:first-child,.read .feat>div:nth-child(-n+2){border-top-color:var(--line)}
+.hero-copy.read{gap:22px}
+.hero h1{font-size:clamp(38px,4.5vw,66px)}
+
+/* local proof */
+.ilha{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center;padding:clamp(22px,3vw,40px)}
+.ilha h2{font-size:clamp(28px,3.4vw,46px)}
+.ilha-facts{display:grid;gap:10px}
+.ilha-facts>div{display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;padding:13px 14px;border:1px solid var(--line);background:rgba(255,255,255,.025)}
+.ilha-facts .ic{width:44px;height:44px;display:grid;place-items:center;color:var(--cyan);border:1px solid var(--line-2);background:rgba(0,240,255,.06)}
+.ilha-facts b{display:block;font-family:var(--display);font-size:17.5px;color:#fff}
+.ilha-facts span.t{display:block;color:var(--muted);font-size:14.5px;margin-top:2px}
+@media (max-width:900px){.ilha{grid-template-columns:1fr}}
+.offer{display:inline-flex;align-items:center;gap:10px;justify-self:start;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--yellow);border:1px dashed rgba(252,238,10,.6);padding:7px 12px;background:rgba(252,238,10,.06)}
+.offer b{color:#fff;font-weight:600}
+
+/* calculators */
+.calc{padding:20px 22px;display:grid;gap:16px;align-content:start}
+.calc-row{display:grid;gap:8px}
+.calc-row label,.calc-row .lbl{display:flex;justify-content:space-between;gap:10px;font-size:14.5px;color:var(--ink-2)}
+.calc-row output{font-family:var(--mono);color:var(--cyan);font-weight:600;white-space:nowrap}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;margin:8px 0;background:linear-gradient(90deg,var(--cyan),var(--magenta));outline:none;border-radius:0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;background:var(--yellow);border:2px solid #07070A;box-shadow:0 0 12px rgba(252,238,10,.7)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--yellow);border:2px solid #07070A;border-radius:0}
+input[type=range]:focus-visible{outline:2px solid var(--yellow);outline-offset:8px}
+.seg-pick{display:flex;flex-wrap:wrap;gap:6px}
+.seg-pick button{font:inherit;font-size:13.5px;padding:8px 13px;background:transparent;color:var(--ink-2);border:1px solid var(--line);cursor:pointer}
+.seg-pick button:hover{border-color:var(--cyan)}
+.seg-pick button[aria-pressed="true"]{background:var(--cyan);color:#021018;border-color:var(--cyan);font-weight:700}
+.calc-out{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border-top:1px solid var(--line);padding-top:14px}
+.calc-out div{display:grid;gap:2px}
+.calc-out small{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.calc-out b{font-family:var(--display);font-size:clamp(24px,3vw,36px);color:#fff;text-shadow:0 0 22px rgba(0,240,255,.45);font-variant-numeric:tabular-nums}
+.calc-out b.m{text-shadow:0 0 22px rgba(255,43,214,.6)}
+.calc-note{font-size:12.5px;color:var(--muted)}
+.funil-calc{margin-top:18px;max-width:640px}
+
+/* suporte digital */
+.sp-plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sp{padding:14px;display:grid;gap:4px;align-content:start;--k:10px}
+.sp b{font-family:var(--display);font-size:16px;color:#fff}
+.sp .p{font-family:var(--display);font-size:24px;color:#fff;line-height:1.1}
+.sp .p small{font-size:12px;color:var(--muted);font-family:var(--body)}
+.sp span{font-size:13px;color:var(--muted);line-height:1.35}
+.sp.hi{border-color:rgba(255,43,214,.6);box-shadow:0 0 22px rgba(255,43,214,.18)}
+@media (max-width:640px){.sp-plans{grid-template-columns:1fr}}
+.aula-list{list-style:none;margin:22px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px}
+.aula-list li{display:flex;gap:10px;align-items:baseline;font-size:15.5px;color:var(--ink-2)}
+.aula-list li::before{content:"";width:8px;height:8px;flex:none;background:var(--magenta);box-shadow:0 0 8px var(--magenta);transform:rotate(45deg) translateY(-2px)}
+@media (max-width:560px){.aula-list{grid-template-columns:1fr}}
+
+/* app do cliente */
+.app-wrap{display:flex;justify-content:center}
+.app-phone{box-shadow:0 0 0 1px rgba(255,43,214,.4),0 0 30px rgba(255,43,214,.25),0 40px 70px -20px rgba(0,0,0,.8)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.tile{display:grid;gap:5px;justify-items:center;text-align:center;padding:9px 3px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;font-size:10.5px;line-height:1.2;color:var(--ink-2)}
+.tile i{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:rgba(0,240,255,.12);color:var(--cyan);font-style:normal}
+.tile.mg i{background:rgba(255,43,214,.14);color:var(--magenta)}
+.tile.yl i{background:rgba(252,238,10,.14);color:var(--yellow)}
+.acct{display:grid;gap:3px;padding:12px;border-radius:12px;background:linear-gradient(135deg,rgba(0,240,255,.2),rgba(255,43,214,.2));border:1px solid rgba(255,255,255,.1)}
+.acct small{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.acct b{font-family:var(--display);font-size:24px;color:#fff;line-height:1.1}
+.acct span{font-size:11.5px;color:var(--ink-2)}
+.notice{display:flex;gap:8px;align-items:flex-start;padding:9px 10px;border-radius:10px;background:rgba(252,238,10,.08);border:1px solid rgba(252,238,10,.3);font-size:11.5px;line-height:1.35;color:var(--ink)}
+.notice svg{flex:none;color:var(--yellow);margin-top:1px}
+
+/* copilot */
+.cp-msgs{display:grid;gap:10px;padding:16px 18px}
+.cp-you{justify-self:end;max-width:80%;padding:9px 12px;background:rgba(255,43,214,.1);border:1px solid rgba(255,43,214,.35);font-size:14.5px}
+.cp-you small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--magenta);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.cp-ans{max-width:94%;padding:12px 14px;background:rgba(0,240,255,.07);border:1px solid rgba(0,240,255,.3);font-size:14.5px;display:grid;gap:8px}
+.cp-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cp-kpis div{padding:8px 10px;border:1px solid var(--line);background:rgba(0,0,0,.25)}
+.cp-kpis small{display:block;font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.cp-kpis b{font-family:var(--display);font-size:18px;color:#fff}
+.roles{list-style:none;margin:0;padding:12px 18px 18px;display:grid;gap:7px;border-top:1px solid var(--line)}
+.roles li{display:grid;grid-template-columns:118px 1fr;gap:10px;font-size:13.5px;color:var(--ink-2)}
+.roles b{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);font-weight:600}
+@media (max-width:420px){.roles li{grid-template-columns:1fr;gap:2px}.cp-kpis{grid-template-columns:1fr 1fr}}
+
+/* tools */
+.tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.tool{padding:22px 20px;display:grid;gap:10px;align-content:start}
+.tool h3{font-size:19px;color:#fff}
+.tool p{font-size:15px;color:var(--muted)}
+.tool .pill{justify-self:start}
+@media (max-width:980px){.tools{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.tools{grid-template-columns:1fr}}
+.testbar{display:flex;flex-wrap:wrap;gap:6px}
+.testbar span{font-family:var(--mono);font-size:10.5px;padding:3px 7px;border:1px solid rgba(61,255,162,.4);color:var(--ok);letter-spacing:.04em}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+
+/* ---------- desempenho: modo leve, celular e imagem do laboratório ---------- */
+.lab-poster{position:fixed;inset:0;z-index:0;pointer-events:none;background:var(--bg) url("lab-poster.jpg") 50% 42%/cover no-repeat;transition:opacity .9s ease}
+@media (max-aspect-ratio:4/5){.lab-poster{background-image:url("lab-poster-m.jpg");background-position:50% 38%}}
+#space{opacity:0;transition:opacity .9s ease}
+html.lab-on #space{opacity:1}
+html.lab-on .lab-poster{opacity:0}
+html.leve #space,html.leve .fim-logo{display:none}
+/* no modo leve a vinheta vai junto da imagem, numa camada só */
+html.leve .vignette{display:none}
+html.leve .lab-poster{background-image:radial-gradient(120% 90% at 50% 45%,transparent 45%,rgba(2,3,8,.8) 100%),linear-gradient(90deg,rgba(4,5,12,.55),rgba(4,5,12,.18) 55%,rgba(4,5,12,.3)),url("lab-poster.jpg")}
+@media (max-aspect-ratio:4/5){html.leve .lab-poster{background-image:radial-gradient(120% 90% at 50% 45%,transparent 45%,rgba(2,3,8,.8) 100%),linear-gradient(90deg,rgba(4,5,12,.55),rgba(4,5,12,.18) 55%,rgba(4,5,12,.3)),url("lab-poster-m.jpg")}}
+html.leve .nav,html.movel .nav{background:rgba(4,5,12,.93);backdrop-filter:none;-webkit-backdrop-filter:none}
+html.leve .scan,html.movel .scan{display:none}
+html.leve [data-tilt],html.leve [data-par],html.movel [data-tilt],html.movel [data-par]{will-change:auto}
+html.leve .bob,html.leve .tweezer,html.leve .plan-wrap.hot,html.leve .cta::before,
+html.movel .plan-wrap.hot,html.movel .cta::before{animation:none}
+@media (pointer:coarse){[data-tilt],[data-par]{will-change:auto}}
+.plan-wrap.hot.fora,.cta.fora::before{animation-play-state:paused}
+.modo-linha{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0;flex-basis:100%;font-size:13px;color:var(--muted)}
+.modo-btn{font:600 12px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--cyan);background:rgba(0,240,255,.06);border:1px solid var(--line-2);padding:10px 14px;min-height:40px;cursor:pointer}
+.modo-btn:hover{background:rgba(0,240,255,.14)}
+.modo-btn:focus-visible,.modo-x:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+.modo-aviso{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:70;max-width:440px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 12px;align-items:start;padding:14px 14px 14px 16px;background:rgba(7,9,24,.97);border:1px solid var(--line-2);box-shadow:0 18px 50px rgba(0,0,0,.6);font-size:14px;color:var(--ink-2)}
+.modo-aviso p{margin:0}
+.modo-aviso .modo-btn{grid-column:1;justify-self:start}
+.modo-x{grid-column:2;grid-row:1;width:40px;height:40px;font:400 22px/1 var(--body);color:var(--ink-2);background:none;border:1px solid var(--line);cursor:pointer}
+
+/* ---------- celular: iPhone deitado, toque e zoom de texto ---------- */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+a,button,summary,label{-webkit-tap-highlight-color:rgba(0,240,255,.15)}
+@supports (padding:max(0px)){body{padding-left:max(var(--gutter),env(safe-area-inset-left,0px));padding-right:max(var(--gutter),env(safe-area-inset-right,0px))}}
+/* ---------- celular: telas estreitas ---------- */
+@media (max-width:1020px){.holo.ticket{right:0}}
+@media (max-width:1020px) and (min-width:621px){.chip-a,.chip-b{left:6px}}
+@media (max-width:620px){
+  .holo.ticket{right:-6px}
+  .pad{width:min(340px,92vw);height:min(340px,92vw);margin-left:calc(min(340px,92vw) / -2)}
+}
+@media (max-width:380px){.holo.ticket{display:none}}
+@media (max-width:360px){.chip-a{transform:translateZ(140px) scale(.88)}}
+@media (max-width:1180px) and (min-width:1021px){.holo.ticket{right:-8px}}
+@media (max-width:440px){.calc-out{grid-template-columns:minmax(0,1fr)}}
+.calc-out b{overflow-wrap:anywhere}
+@media (max-width:380px){
+  .nav-in{gap:12px}
+  .brand-logo{height:38px}
+  .nav .btn-sm{padding:9px 12px;font-size:12px;letter-spacing:.04em}
+}
+@media (pointer:coarse){
+  .btn-sm{min-height:42px}
+  .ex-chips button{min-height:40px}
+}
+</style>
+<div class="lab-poster" id="labPoster" aria-hidden="true"></div>
+<canvas id="space" aria-hidden="true" hidden></canvas>
+<div class="ex-hud" id="exHud" hidden>
+  <div class="ex-top">
+    <p class="ex-title"><span class="dot-rec" aria-hidden="true"></span>YAXUM Lab <span class="ex-sep">//</span> <span id="exNear" aria-live="polite">Corredor</span></p>
+    <button class="btn btn-sm" type="button" id="exSair">Voltar para a página</button>
+  </div>
+  <aside class="ex-card" id="exCard" hidden aria-live="polite">
+    <span class="ex-hole" aria-hidden="true"></span>
+    <div class="ex-txt">
+      <p class="ex-code" id="exCode"></p>
+      <h3 id="exNome"></h3>
+      <p class="ex-desc" id="exDesc"></p>
+      <p class="ex-sub" id="exSub1">Na bancada</p>
+      <p class="ex-eq" id="exEq"></p>
+      <p class="ex-sub" id="exSub2">Com o YAXUM</p>
+      <ul class="ex-yx" id="exYx"></ul>
+      <a class="btn btn-sm wd" id="exLink" href="#top">Ver na página</a>
+    </div>
+  </aside>
+  <div class="ex-bottom">
+    <div class="ex-pad" id="exPad" aria-label="Andar">
+      <span></span><button type="button" data-k="f" aria-label="Andar para frente">▲</button><span></span>
+      <button type="button" data-k="l" aria-label="Andar para a esquerda">◀</button><button type="button" data-k="b" aria-label="Andar para trás">▼</button><button type="button" data-k="r" aria-label="Andar para a direita">▶</button>
+    </div>
+    <p class="ex-help"><span class="k-desk">Arraste para olhar · setas do teclado ou W A S D para andar · a rolagem também anda · Esc para sair</span><span class="k-touch">Arraste o dedo para olhar · toque nas setas para andar</span></p>
+    <div class="ex-chips" id="exChips" role="group" aria-label="Ir até uma bancada"></div>
+  </div>
+</div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="scan" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="nav-in">
+    <a class="brand" href="#top" aria-label="YAXUM, voltar ao início"><img class="brand-logo" src="yaxum-cubo-nav.png" alt="YAXUM" width="549" height="180"></a>
+    <nav class="nav-links" aria-label="Seções">
+      <a href="#bancada">Bancada ao vivo</a>
+      <a href="#whatsapp">WhatsApp com IA</a>
+      <a href="#suporte">Suporte digital</a>
+      <a href="#app">App do cliente</a>
+      <a href="#precos">Planos</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn btn-sm btn-ghost nav-lab" type="button" data-explorar aria-label="Andar pelo laboratório" title="Andar pelo laboratório"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg><span>Andar pelo laboratório</span></button>
+      <a class="btn btn-sm" data-wa href="#contato">Testar grátis</a>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="hero" id="top">
+    <div class="hero-copy read">
+      <p class="tag"><span class="dot-rec" aria-hidden="true"></span>Assistência técnica <b>// feito em Florianópolis</b></p>
+      <h1 class="glitch" id="headline">
+        <span>O cliente <span class="c">assiste</span> o conserto. O WhatsApp <span class="m">fecha</span> o orçamento.</span>
+        <span class="gl gl-a" aria-hidden="true">O cliente assiste o conserto. O WhatsApp fecha o orçamento.</span>
+        <span class="gl gl-b" aria-hidden="true">O cliente assiste o conserto. O WhatsApp fecha o orçamento.</span>
+      </h1>
+      <p class="lede">O técnico grava o serviço da bancada e o cliente acompanha ao vivo pelo celular. Enquanto isso, o WhatsApp da loja atende, faz orçamento, manda foto de produto, marca horário e volta a chamar quem sumiu. Tudo ligado à Ordem de Serviço, ao estoque e ao caixa.</p>
+      <p class="offer">30 dias grátis <b>· implantação presencial na Ilha</b></p>
+      <div class="hero-actions">
+        <a class="btn" data-wa href="#contato">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg>
+          Testar 30 dias grátis
+        </a>
+        <a class="btn btn-ghost" href="#precos">Ver planos</a>
+        <button class="btn btn-ghost" type="button" data-explorar>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/></svg>
+          Andar pelo laboratório
+        </button>
+      </div>
+      <dl class="hud">
+        <div><dt>Bancada ao vivo</dt><dd>O cliente assiste pelo link da Ordem de Serviço</dd></div>
+        <div><dt>WhatsApp com IA</dt><dd>Orça, agenda e vende a qualquer hora</dd></div>
+        <div><dt>Funil</dt><dd>Orçamento parado volta a andar</dd></div>
+      </dl>
+    </div>
+
+    <div class="stage" id="stage" role="img" aria-label="Exemplo em 3D: o celular do cliente mostra a Ordem de Serviço 4821, iPhone 13, troca de tela, com vídeo ao vivo da bancada e status Em reparo. Em volta, a via holográfica da Ordem de Serviço e avisos do WhatsApp e do clube de pontos.">
+      <div class="stage-in" id="stageIn">
+        <div class="pad" aria-hidden="true"></div>
+        <div class="beam" aria-hidden="true"></div>
+
+        <div class="holo ticket" aria-hidden="true">
+          <p class="t-h">ORDEM DE SERVIÇO</p>
+          <p class="t-store">Fix Point Celulares</p>
+          <p class="t-row"><span>Nº 4821</span><span>25/09 09:12</span></p>
+          <hr>
+          <dl>
+            <dt>Cliente</dt><dd>Juliana Prado</dd>
+            <dt>Aparelho</dt><dd>iPhone 13 128GB</dd>
+            <dt>IMEI</dt><dd>35 209611 482917 3</dd>
+            <dt>Defeito</dt><dd>Tela trincada</dd>
+            <dt>Orçamento</dt><dd>R$ 489,00 ok</dd>
+            <dt>Garantia</dt><dd>90 dias</dd>
+          </dl>
+          <hr>
+          <div class="t-qr"><canvas id="qr" width="25" height="25"></canvas><p>Acompanhe ao vivo<br><b>yaxum.app/os/4821</b></p></div>
+        </div>
+
+        <div class="floaty" aria-hidden="true">
+          <div class="bob">
+            <div class="phone">
+              <div class="screen">
+                <div class="sb"><span>14:36</span><span class="sb-bat"></span></div>
+                <div class="url">
+                  <svg width="10" height="12" viewBox="0 0 10 12"><rect x="1" y="5" width="8" height="6.2" rx="1.4" fill="currentColor"/><path d="M3 5V3.6a2 2 0 0 1 4 0V5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>
+                  yaxum.app/os/4821
+                </div>
+                <div>
+                  <p class="os-store">Fix Point Celulares · Ordem de Serviço</p>
+                  <p class="os-title">Nº 4821</p>
+                  <p class="os-sub">iPhone 13 · Troca de tela</p>
+                </div>
+                <div class="live">
+<svg viewBox="0 0 320 180" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <pattern id="g" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M16 0H0V16" fill="none" stroke="rgba(214,234,238,.10)" stroke-width="1"/></pattern>
+                <radialGradient id="v" cx="50%" cy="45%" r="75%"><stop offset="55%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".55"/></radialGradient>
+                <linearGradient id="lamp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></linearGradient>
+              </defs>
+              <rect width="320" height="180" fill="#1A4654"/>
+              <rect width="320" height="180" fill="url(#g)"/>
+              <!-- housing, open -->
+              <rect x="18" y="56" width="138" height="68" rx="13" fill="#1B2023" stroke="#3B444A" stroke-width="1.5"/>
+              <rect x="28" y="64" width="66" height="52" rx="4" fill="#2C3338"/>
+              <rect x="33" y="70" width="40" height="3" rx="1.5" fill="#46515A"/>
+              <rect x="33" y="77" width="26" height="3" rx="1.5" fill="#46515A"/>
+              <rect x="100" y="63" width="46" height="54" rx="3" fill="#1F4232"/>
+              <rect x="106" y="70" width="14" height="14" rx="1.5" fill="#0D1A14"/>
+              <rect x="124" y="70" width="16" height="9" rx="1.5" fill="#0D1A14"/>
+              <rect x="124" y="83" width="9" height="9" rx="1" fill="#B9C2C6"/>
+              <rect x="106" y="89" width="14" height="22" rx="1.5" fill="#0D1A14"/>
+              <circle cx="139" cy="106" r="2" fill="#C9A24A"/>
+              <!-- flex cables (kapton) -->
+              <rect x="146" y="74" width="30" height="6" rx="1.5" fill="#D08417"/>
+              <rect x="146" y="86" width="30" height="9" rx="1.5" fill="#C27410"/>
+              <!-- display, face down -->
+              <rect x="168" y="56" width="138" height="68" rx="13" fill="#0C0E10" stroke="#30383D" stroke-width="1.5"/>
+              <rect x="182" y="66" width="104" height="48" rx="3" fill="#6E787E" opacity=".55"/>
+              <rect x="190" y="72" width="30" height="3" rx="1.5" fill="#9AA5AB" opacity=".6"/>
+              <!-- screws -->
+              <circle cx="236" cy="30" r="3" fill="#A9B3B8"/><circle cx="249" cy="26" r="3" fill="#A9B3B8"/><circle cx="262" cy="31" r="3" fill="#A9B3B8"/>
+              <!-- spudger -->
+              <rect x="40" y="146" width="112" height="7" rx="3.5" fill="#1D2226" transform="rotate(-9 96 150)"/>
+              <!-- suction cup -->
+              <circle cx="92" cy="26" r="14" fill="#2E6E7E" opacity=".9"/><circle cx="92" cy="26" r="6" fill="#23596A"/>
+              <!-- tweezers -->
+              <g class="tweezer"><path d="M214 176 L270 138 M222 180 L272 142" stroke="#C6CED2" stroke-width="3.2" stroke-linecap="round"/></g>
+              <rect width="320" height="180" fill="url(#lamp)"/>
+              <rect width="320" height="180" fill="url(#v)"/>
+            </svg>
+                  <span class="live-tag"><i></i>AO VIVO</span>
+                  <span class="live-time" id="tc">00:12:47</span>
+                  <span class="live-who">Bancada 2 · Rafael</span>
+                </div>
+                <ol class="steps">
+                  <li class="done"><span>Recebido</span><time>09:12</time></li>
+                  <li class="done"><span>Diagnóstico</span><time>09:40</time></li>
+                  <li class="done"><span>Orçamento aprovado</span><time>10:05</time></li>
+                  <li class="now"><span>Em reparo</span><time>agora</time></li>
+                  <li class="pending"><span>Testes</span></li>
+                  <li class="pending"><span>Pronto para retirar</span></li>
+                </ol>
+                <div class="phone-btn">Falar com a loja</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chip chip-a" aria-hidden="true"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Z"/></svg></span><span><small>WhatsApp · IA</small><b>Orçamento aprovado · R$ 489</b></span></div>
+        <div class="chip chip-b mgc" aria-hidden="true"><span class="ic"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg></span><span><small>Clube</small><b>+56 pontos · Juliana</b></span></div>
+        <div class="chip chip-c" aria-hidden="true"><span class="dot-rec"></span><span><small>Bancada 2</small><b>Gravando ao vivo</b></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ilha">
+    <div class="glass ilha" data-tilt="8">
+      <div class="sec-head" style="margin:0">
+        <p class="eyebrow">Feito na Ilha</p>
+        <h2>Nasceu no balcão de uma assistência de <span class="c">Florianópolis</span></h2>
+        <p class="lede">O YAXUM não saiu de uma empresa de software que nunca abriu um celular. Ele foi criado e roda todo dia dentro de uma assistência técnica da Ilha, resolvendo os mesmos problemas da sua loja: orçamento que some no WhatsApp, cliente desconfiado no balcão e peça encomendada que ninguém lembra de avisar.</p>
+      </div>
+      <div class="ilha-facts">
+        <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="10" r="2.5"/></svg></span><p><b>Implantação presencial na Ilha</b><span class="t">A gente vai até a sua loja, liga a câmera da bancada, conecta o WhatsApp e treina a equipe. Fora de Florianópolis, a implantação é online.</span></p></div>
+        <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><p><b>30 dias grátis</b><span class="t">Use o sistema completo na sua loja por um mês antes de pagar.</span></p></div>
+        <div><span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16v11H9l-5 4V5Z"/></svg></span><p><b>Fala com quem é do ramo</b><span class="t">Quem te atende conhece Ordem de Serviço, bancada e balcão, porque trabalha com isso.</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="bancada">
+    <div class="split rev">
+      <div class="read" data-tilt="4">
+        <div class="sec-head">
+          <p class="eyebrow">Bancada ao vivo</p>
+          <h2>Quem vê o conserto <span class="c">confia</span> na loja</h2>
+          <p class="lede">O maior medo de quem deixa o celular na assistência é não saber o que fazem com ele. No YAXUM, o técnico grava da bancada e o cliente assiste o serviço ao vivo, no mesmo link em que acompanha o status. Menos desconfiança no balcão, mais orçamento aprovado.</p>
+        </div>
+        <ol class="howto">
+          <li><h3>O aparelho entra com checklist e fotos</h3><p>A conferência de entrada é feita com o cliente na frente, e a bancada registra frente e verso na entrada e na saída.</p></li>
+          <li><h3>O técnico liga o cronômetro e a câmera</h3><p>A transmissão começa junto e encerra sozinha quando o cronômetro para.</p></li>
+          <li><h3>O cliente assiste pelo link</h3><p>Recebe no WhatsApp e abre no navegador, sem baixar nada. Cada mudança de status vira aviso.</p></li>
+          <li><h3>O vídeo fica guardado na Ordem de Serviço</h3><p>A gravação sobe para o servidor e fica na ficha, útil para garantia e para tirar dúvida depois.</p></li>
+        </ol>
+      </div>
+      <div class="glass" data-tilt="14" data-spin="10" role="img" aria-label="Exemplo do painel do técnico: bancada 2 gravando a Ordem de Serviço 4821, fila com outras ordens e botões de status.">
+        <div class="ui-bar"><span><b>Bancada 2</b> <span class="muted">· Rafael</span></span><span class="pill rec tnum" id="tc2">Gravando 00:12:47</span></div>
+        <div class="queue">
+          <p class="q-label">Fila da bancada</p>
+          <div class="q-row q-active"><span class="mono tnum">4821</span><span><b>iPhone 13</b> <span class="muted">Troca de tela</span></span><span class="pill cy">Em reparo</span></div>
+          <div class="q-row"><span class="mono tnum">4818</span><span><b>Moto G54</b> <span class="muted">Troca de bateria</span></span><span class="pill warn">Aguardando peça</span></div>
+          <div class="q-row"><span class="mono tnum">4825</span><span><b>Galaxy A15</b> <span class="muted">Não liga</span></span><span class="pill">Diagnóstico</span></div>
+        </div>
+        <div class="status-pick">
+          <p class="q-label">Status da Ordem de Serviço 4821</p>
+          <div class="seg"><span class="is-done">Recebido</span><span class="is-done">Diagnóstico</span><span class="is-done">Orç. aprovado</span><span class="is-now">Em reparo</span><span>Testes</span><span>Pronto</span></div>
+          <p class="hint">Ao mudar o status, o cliente recebe mensagem no WhatsApp.</p>
+        </div>
+        <div class="ui-actions"><span class="fake-btn">Enviar foto ao cliente</span><span class="fake-btn ghost">Pausar gravação</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="whatsapp">
+    <div class="split">
+      <div class="read" data-tilt="4">
+        <div class="sec-head">
+          <p class="eyebrow">WhatsApp com IA</p>
+          <h2>Um WhatsApp que atende, orça, agenda e <span class="m">vende</span></h2>
+          <p class="lede">A IA atende no jeito da sua loja, a qualquer hora, sabendo o status da Ordem de Serviço, os preços, o estoque e a agenda. Ela diz o que quer fazer e o sistema confere antes de executar: marcar horário, montar orçamento ou chamar alguém da equipe.</p>
+        </div>
+        <dl class="feat">
+          <div><dt>Atende 24 horas</dt><dd>Responde com os preços, o estoque e a agenda da loja, inclusive às 22h de um sábado.</dd></div>
+          <div><dt>Orçamento na conversa</dt><dd>Monta o orçamento com modelo, qualidade da peça e valor, e ele já entra no funil.</dd></div>
+          <div><dt>Foto do produto</dt><dd>Pediu película, capa ou carregador? Vai a foto do que tem no estoque, com o preço.</dd></div>
+          <div><dt>Horário marcado</dt><dd>Depois do “pode fazer”, oferece dois horários livres da agenda e confirma.</dd></div>
+          <div><dt>Passa para uma pessoa</dt><dd>Quando o assunto pede gente, a conversa vai para a equipe com o resumo pronto.</dd></div>
+          <div><dt>Número protegido</dt><dd>Fila com ritmo de envio, horário de atendimento e lista de não perturbe.</dd></div>
+        </dl>
+      </div>
+      <div class="glass chat" data-tilt="12" data-spin="-10" role="img" aria-label="Exemplo de conversa no WhatsApp: a IA informa o status da Ordem de Serviço, manda foto do combo de película e capa, vende o combo e marca a retirada. No topo, o resumo da conversa para a equipe.">
+        <div class="ui-bar">
+          <span class="chat-who"><span class="avatar">JP</span><span><b>Juliana Prado</b><br><span class="muted small">Ordem de Serviço 4821 · cliente desde 2024</span></span></span>
+          <span class="pill ok">IA atendendo</span>
+        </div>
+        <div class="summary">
+          <p class="sum-h"><span class="pill mg">IA</span>Resumo da conversa</p>
+          <ul>
+            <li>Troca de tela do iPhone 13 aprovada (R$ 489,00).</li>
+            <li>Comprou o combo película 3D + capa (R$ 89,00).</li>
+            <li>Retirada marcada para hoje às 18h30.</li>
+          </ul>
+        </div>
+        <div class="msgs">
+          <p class="msg in">boa tarde, meu iphone já ficou pronto?<time>14:31</time></p>
+          <p class="msg out">Oi, Juliana! Está em reparo, com previsão para hoje às 17h. Dá pra assistir ao vivo: yaxum.app/os/4821<time>14:31 · IA</time></p>
+          <p class="msg in">que legal kkk vcs tem película pra ele?<time>14:33</time></p>
+          <div class="msg out media">
+            <svg viewBox="0 0 240 140" aria-hidden="true">
+              <defs><radialGradient id="pg" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#1B2350"/><stop offset="1" stop-color="#080B1E"/></radialGradient></defs>
+              <rect width="240" height="140" fill="url(#pg)"/>
+              <ellipse cx="120" cy="128" rx="92" ry="6" fill="#00F0FF" opacity=".18"/>
+              <rect x="44" y="14" width="64" height="112" rx="15" fill="#2A1552"/>
+              <rect x="44" y="14" width="64" height="112" rx="15" fill="none" stroke="#FF2BD6" stroke-width="1.5"/>
+              <rect x="52" y="22" width="28" height="28" rx="8" fill="#3B1E6E"/>
+              <circle cx="60" cy="30" r="4.5" fill="#0A0616"/><circle cx="72" cy="30" r="4.5" fill="#0A0616"/><circle cx="60" cy="42" r="4.5" fill="#0A0616"/>
+              <rect x="124" y="18" width="58" height="106" rx="12" fill="#7DF9FF" fill-opacity=".14" stroke="#7DF9FF" stroke-width="1.5"/>
+              <path d="M134 60 L168 26 M134 78 L178 34" stroke="#7DF9FF" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+              <rect x="148" y="100" width="76" height="26" fill="#FCEE0A"/>
+              <text x="186" y="118" text-anchor="middle" fill="#07070A" font-size="13" font-weight="700" font-family="JetBrains Mono, ui-monospace, monospace">R$ 89</text>
+            </svg>
+            <span class="cap">Combo película 3D + capa para iPhone 13. Sai R$ 89 (separado, R$ 108).</span>
+            <time>14:33 · IA</time>
+          </div>
+          <p class="msg out">Separo junto com o aparelho? Tenho retirada hoje às 17h30 ou 18h30.<time>14:33 · IA</time></p>
+          <p class="msg in">18h30 pode ser<time>14:35</time></p>
+          <p class="msg out">Fechado! Combo separado e retirada marcada para hoje às 18h30. Te lembro uma hora antes.<time>14:35 · IA</time></p>
+          <p class="sys">Combo adicionado à Ordem de Serviço 4821 · Retirada agendada 18:30</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="funil">
+    <div class="sec-head read" data-tilt="5">
+      <p class="eyebrow">Funil de orçamento</p>
+      <h2>Orçamento feito já entra no <span class="c">follow-up</span></h2>
+      <p class="lede">Todo orçamento que sai, pelo balcão ou pelo WhatsApp, entra no funil. Se o cliente responde, a IA continua a conversa. Se ele some, a mensagem volta no tempo certo. Se acha caro, ela oferece outra saída. Cada passo fica registrado na ficha.</p>
+    </div>
+    <div class="glass funnel" data-tilt="10">
+      <div class="f-start">
+        <span class="pill cy" style="justify-self:start">Orçamento enviado</span>
+        <p><b>Ordem de Serviço 4821 · iPhone 13 · Troca de tela</b></p>
+        <p class="mono tnum muted" style="font-size:12px">R$ 489,00 · 25/09 às 09:52</p>
+      </div>
+      <div class="lanes">
+        <div class="lane l-ok">
+          <p class="lane-h">Respondeu</p>
+          <ol class="lane-steps">
+            <li><time>na hora</time><p>A IA tira dúvidas de prazo, garantia e forma de pagamento.</p></li>
+            <li><time>pode fazer</time><p>Oferece dois horários livres da agenda.</p></li>
+            <li class="end ok"><time>marcou</time><p>Horário no calendário e aparelho a caminho da bancada.</p></li>
+          </ol>
+        </div>
+        <div class="lane">
+          <p class="lane-h">Não respondeu</p>
+          <ol class="lane-steps">
+            <li><time>seguindo</time><p>Até seis mensagens, no ritmo que você definir: “Conseguiu ver o orçamento do seu iPhone?”</p></li>
+            <li><time>respondeu</time><p>Quem responde sai da sequência na hora e a conversa continua.</p></li>
+            <li class="end"><time>pediu p/ parar</time><p>Entra no não perturbe e não recebe mais nada.</p></li>
+          </ol>
+        </div>
+        <div class="lane l-mg">
+          <p class="lane-h">Achou caro</p>
+          <ol class="lane-steps">
+            <li><time>na hora</time><p>Oferece um combo ou o cupom que o cliente tem no clube.</p></li>
+            <li><time>+1 dia</time><p>Se não fechar, passa a conversa para um atendente com o resumo pronto.</p></li>
+            <li class="end"><time>sempre</time><p>A negociação inteira fica salva na ficha do cliente.</p></li>
+          </ol>
+        </div>
+      </div>
+      <p class="f-note">Você define o tempo de cada um dos seis follow-ups, em minutos. Em época de movimento, dá para apertar o ritmo.</p>
+    </div>
+    <div class="glass calc funil-calc" data-tilt="6">
+      <p class="sum-h">Simulador · quanto o funil pode trazer para a sua loja</p>
+      <div class="calc-row"><label for="cfOrc">Orçamentos enviados por mês <output id="cfOrcV" for="cfOrc">80</output></label><input type="range" id="cfOrc" min="10" max="400" step="10" value="80"></div>
+      <div class="calc-row"><label for="cfTicket">Valor médio do serviço <output id="cfTicketV" for="cfTicket">R$ 350</output></label><input type="range" id="cfTicket" min="80" max="1500" step="10" value="350"></div>
+      <div class="calc-row"><label for="cfRec">Orçamentos a mais que o follow-up fecha <output id="cfRecV" for="cfRec">10%</output></label><input type="range" id="cfRec" min="1" max="30" step="1" value="10"></div>
+      <div class="calc-out"><div><small>Serviços a mais por mês</small><b id="cfN">8</b></div><div><small>Receita a mais por mês</small><b class="m" id="cfR">R$ 2.800</b></div></div>
+      <p class="calc-note">Simulação com os números que você escolher. Não é promessa de resultado.</p>
+    </div>
+  </section>
+
+  <section class="section" id="suporte">
+    <div class="split">
+      <div class="read" data-tilt="4">
+        <div class="sec-head">
+          <p class="eyebrow">Suporte digital</p>
+          <h2>Uma renda nova todo mês: <span class="m">aulas de celular</span> para quem tem dificuldade</h2>
+          <p class="lede">Muita gente entra na assistência sem nada quebrado. Quer ajuda com o WhatsApp, com as fotos, com a conta do Google. Com o Suporte Digital, a sua loja transforma essa ajuda em plano mensal, com atendimentos marcados e pagamento todo mês.</p>
+        </div>
+        <ul class="aula-list">
+          <li>Configurações do aparelho e acessibilidade</li>
+          <li>WhatsApp, Instagram e outros apps</li>
+          <li>Backup e organização de fotos e contatos</li>
+          <li>Conta Google e Apple ID</li>
+          <li>Bluetooth, fones, smartwatch e TV</li>
+          <li>Configuração completa de aparelho novo</li>
+        </ul>
+        <ol class="howto">
+          <li><h3>A loja cadastra o plano</h3><p>O sistema gera o código do cliente e acompanha o vencimento para a renovação.</p></li>
+          <li><h3>O cliente marca a aula pelo link</h3><p>O link já vai com o código dele. Ele abre, escolhe o horário e pronto.</p></li>
+          <li><h3>Pagamento pelo site</h3><p>Pix ou cartão pelo Mercado Pago. Quando o pagamento confirma, o plano entra ativo.</p></li>
+        </ol>
+      </div>
+      <div class="glass calc" data-tilt="12" data-spin="-8">
+        <p class="sum-h">Tabela de uma assistência da Ilha que já vende o plano</p>
+        <div class="sp-plans">
+          <div class="glass sp"><b>Básico</b><p class="p">R$ 59,90<small>/mês</small></p><span>4 atendimentos de até 20 min</span></div>
+          <div class="glass sp hi"><b>Premium</b><p class="p">R$ 99,90<small>/mês</small></p><span>6 atendimentos, película a cada 3 meses e check do aparelho</span></div>
+          <div class="glass sp"><b>Plus</b><p class="p">R$ 179,90<small>/mês</small></p><span>8 atendimentos de até 30 min, urgência e dúvidas pelo WhatsApp</span></div>
+        </div>
+        <div class="calc-row"><span class="lbl">Plano da simulação</span><div class="seg-pick" id="csPlano" role="group" aria-label="Plano da simulação"><button type="button" data-p="59.9" aria-pressed="false">Básico</button><button type="button" data-p="99.9" aria-pressed="true">Premium</button><button type="button" data-p="179.9" aria-pressed="false">Plus</button></div></div>
+        <div class="calc-row"><label for="csN">Clientes no plano <output id="csNV" for="csN">20</output></label><input type="range" id="csN" min="1" max="100" value="20"></div>
+        <div class="calc-out"><div><small>Por mês</small><b id="csM">R$ 1.998,00</b></div><div><small>Por ano</small><b class="m" id="csA">R$ 23.976,00</b></div></div>
+        <p class="calc-note">Avulso também vende: atendimento de até 20 minutos por R$ 29,90 na mesma tabela.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="app">
+    <div class="split rev">
+      <div class="read" data-tilt="4">
+        <div class="sec-head">
+          <p class="eyebrow">App do cliente</p>
+          <h2>A sua loja no <span class="c">celular do cliente</span></h2>
+          <p class="lede">Cada cliente ganha uma área com o nome da sua loja. Ele entra só com o telefone e o código que chega no WhatsApp, sem decorar senha.</p>
+        </div>
+        <dl class="feat">
+          <div><dt>Meus aparelhos</dt><dd>Ordens de Serviço em andamento, status ao vivo e o vídeo do conserto.</dd></div>
+          <div><dt>Garantia digital</dt><dd>Cartão de garantia gerado na entrega e pedido de garantia pelo próprio site.</dd></div>
+          <div><dt>Orçamento na hora</dt><dd>O cliente escolhe aparelho e serviço e vê o preço antes de sair de casa.</dd></div>
+          <div><dt>Loja online</dt><dd>Capas, películas e acessórios com Pix ou cartão. O estoque baixa sozinho.</dd></div>
+          <div><dt>Seminovos e venda do usado</dt><dd>Catálogo de seminovos e um caminho para o cliente vender o aparelho dele para a loja, mandando fotos.</dd></div>
+          <div><dt>Lembrete de manutenção</dt><dd>“Sua bateria foi trocada há 20 meses.” O cliente volta sem a loja precisar insistir.</dd></div>
+        </dl>
+      </div>
+      <div class="app-wrap" data-tilt="12" data-spin="12" role="img" aria-label="Exemplo da área do cliente no celular: nível Prata com 636 pontos, aviso de manutenção da bateria e atalhos para aparelhos, garantia, orçamento, loja, combos, prêmios, seminovos, venda do usado e agendamento.">
+        <div class="phone app-phone" aria-hidden="true">
+          <div class="screen">
+            <div class="sb"><span>09:41</span><span class="sb-bat"></span></div>
+            <div><p class="os-store">Olá, Juliana</p><p class="os-title">Minha conta</p></div>
+            <div class="acct"><small>Clube · Prata · pontos 1,5x</small><b>636 pts</b><span>Faltam 364 para a película 3D grátis</span></div>
+            <div class="notice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2M6 10v4"/></svg><span><b>Hora de avaliar a bateria.</b> A troca foi há 20 meses. Quer agendar?</span></div>
+            <div class="tiles">
+              <div class="tile"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/></svg></i>Meus aparelhos</div>
+              <div class="tile"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Z"/></svg></i>Garantia</div>
+              <div class="tile"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8M8 11h2M14 11h2M8 15h2M14 15h2"/></svg></i>Orçamento</div>
+              <div class="tile mg"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14l-1 13H6L5 8Z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></i>Loja</div>
+              <div class="tile mg"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="8" width="18" height="13"/><path d="M3 12h18M12 8v13M12 8S10 3 7.5 4 8 8 12 8Zm0 0s2-5 4.5-4S16 8 12 8Z"/></svg></i>Combos</div>
+              <div class="tile yl"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7L12 17.3 5.8 21l1.6-7L2 9.2l7.1-.6z"/></svg></i>Prêmios</div>
+              <div class="tile"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0 1 14-5.3M20 12a8 8 0 0 1-14 5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></i>Seminovos</div>
+              <div class="tile"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v14M7 11l5 5 5-5M4 21h16"/></svg></i>Vender usado</div>
+              <div class="tile yl"><i><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></i>Agendar</div>
+            </div>
+            <div class="phone-btn">Falar com a loja</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="encomendas">
+    <div class="split">
+      <div class="read" data-tilt="4">
+        <div class="sec-head">
+          <p class="eyebrow">Encomendas</p>
+          <h2>Pediu uma peça que você não tem? Vira encomenda.</h2>
+          <p class="lede">Anote o nome do cliente e o produto. O YAXUM avisa o cliente em cada etapa, sem ninguém da loja precisar lembrar.</p>
+        </div>
+        <ol class="track">
+          <li><b>Pedido feito</b><span>O cliente recebe a confirmação com o prazo.</span></li>
+          <li><b>A caminho</b><span>Aviso com a previsão de chegada.</span></li>
+          <li><b>Chegou</b><span>Chamado para retirar ou marcar a troca.</span></li>
+        </ol>
+        <p class="f-note">Pedido ao fornecedor: a lista da semana vira uma mensagem pronta, sem nome nem telefone do cliente.</p>
+      </div>
+      <div class="glass orders" data-tilt="12" data-spin="-8" role="img" aria-label="Exemplo da lista de encomendas com três pedidos e a mensagem enviada ao cliente quando a peça chegou.">
+        <div class="ui-bar"><b>Encomendas</b><span class="pill">3 abertas</span></div>
+        <div class="o-row"><div><p class="o-name">Marcos Vieira</p><p class="o-prod">Bateria Moto G54 · Ordem de Serviço 4818</p></div><div class="o-right"><span class="pill ok">Chegou</span><span class="o-when">avisado hoje 11:02</span></div></div>
+        <div class="o-row"><div><p class="o-name">Carla Nunes</p><p class="o-prod">Tela Galaxy A15</p></div><div class="o-right"><span class="pill cy">A caminho</span><span class="o-when">avisado ontem 16:40</span></div></div>
+        <div class="o-row"><div><p class="o-name">Pedro Henrique</p><p class="o-prod">Carregador USB-C 25W</p></div><div class="o-right"><span class="pill">Pedido feito</span><span class="o-when">avisado hoje 09:15</span></div></div>
+        <div class="notify">
+          <p class="sum-h" style="margin:0">Mensagem enviada · Marcos · 11:02</p>
+          <p class="msg out">Oi, Marcos! A bateria do seu Moto G54 chegou. Pode trazer o aparelho até as 19h, a troca leva uns 40 minutos.<time>11:02 · automática</time></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="caixa">
+    <div class="sec-head read" data-tilt="5">
+      <p class="eyebrow">Caixa, maquininha, estoque e clube</p>
+      <h2>Uma venda que cobra na maquininha, baixa o estoque e soma pontos</h2>
+      <p class="lede">Serviço e produto entram na mesma venda. O valor vai direto para a maquininha do Mercado Pago, sem redigitar. O produto sai do estoque, o cupom do clube é aplicado na hora e o cliente ganha pontos. No fim do mês, as vendas saem no modelo do GestãoClick para você emitir a nota.</p>
+    </div>
+    <div class="pos">
+      <div class="receipt-wrap" data-tilt="10" data-spin="12" role="img" aria-label="Exemplo de cupom de venda: troca de tela, combo proteção, cupom do clube aplicado, total de 563 reais no cartão pela maquininha integrada e 56 pontos ganhos.">
+        <div class="holo receipt" aria-hidden="true">
+          <p class="r-h">FIX POINT CELULARES</p>
+          <p class="r-sub">Venda 00931 · 25/09/2026 18:34</p>
+          <p class="r-sub">Cliente: Juliana Prado</p>
+          <hr>
+          <p class="r-line"><span>Troca de tela iPhone 13</span><span>489,00</span></p>
+          <p class="r-note">Ordem de Serviço 4821 · garantia 90 dias</p>
+          <p class="r-line"><span>Combo Proteção</span><span>89,00</span></p>
+          <p class="r-note">película 3D + capa · de 108,00</p>
+          <p class="r-line"><span>Cupom CLUBE15 (300 pts)</span><span>-15,00</span></p>
+          <hr>
+          <p class="r-line r-total"><span>TOTAL</span><span>R$ 563,00</span></p>
+          <p class="r-line"><span>Crédito 2x · maquininha</span><span>563,00</span></p>
+          <hr>
+          <p class="r-line"><span>Pontos nesta compra</span><span class="r-pts">+56</span></p>
+          <p class="r-line"><span>Saldo no clube</span><span>636 pts</span></p>
+          <p class="r-foot">Obrigado pela preferência!</p>
+        </div>
+      </div>
+      <div class="pos-side">
+        <div class="glass club" data-par=".18" role="img" aria-label="Exemplo do cartão do clube: 636 pontos, faltam 364 para a película 3D grátis.">
+          <div class="club-top"><b>Clube Fix Point</b><span class="pill mg">Nível Prata · pontos 1,5x</span></div>
+          <p class="club-name">Juliana Prado</p>
+          <p class="club-pts tnum">636<small>PTS</small></p>
+          <div class="bar" aria-hidden="true"><i style="width:63.6%"></i></div>
+          <p class="bar-cap"><span>Faltam 364 pts para a película 3D grátis</span><span class="mono tnum">1.000</span></p>
+          <ul class="rewards">
+            <li><span class="mono tnum">300 pts</span><span>Cupom de R$ 15</span><span class="pill ok">Resgatado hoje</span></li>
+            <li><span class="mono tnum">1.000 pts</span><span>Película 3D grátis</span><span class="pill cy">Próximo</span></li>
+            <li><span class="mono tnum">2.500 pts</span><span>R$ 100 em serviço</span><span class="pill">Bloqueado</span></li>
+          </ul>
+          <p class="bar-cap" style="margin:4px 0 12px">Missões: seguir no Instagram, avaliar no Google, indicar um amigo. Pontos valem 12 meses e o cliente é avisado antes de vencer.</p>
+        </div>
+        <div class="glass stock" data-par=".34" role="img" aria-label="Exemplo do estoque: três itens com baixa automática da venda, um deles abaixo do mínimo.">
+          <div class="ui-bar"><b>Estoque</b><span class="muted small">baixa automática</span></div>
+          <div class="s-row"><span>Tela iPhone 13 incell</span><span class="pill warn tnum">2 un · repor</span></div>
+          <div class="s-row"><span>Película 3D iPhone 13</span><span class="s-qty tnum">13 un</span></div>
+          <div class="s-row"><span>Capa silicone iPhone 13</span><span class="s-qty tnum">5 un</span></div>
+          <p class="s-foot">Venda 00931 tirou 1 unidade de cada. Estoque baixo avisa no WhatsApp.</p>
+        </div>
+        <div class="glass xml" data-par=".46" role="img" aria-label="Exemplo da exportação das vendas do caixa no modelo do GestãoClick para emitir a nota fiscal.">
+          <div class="ui-bar"><b>Nota fiscal</b><span class="pill cy">GestãoClick</span></div>
+<pre><span class="x-t">financeiro_setembro.xlsx</span>
+<span class="x-a">Data        Forma                Valor</span>
+25/09/2026  Cartão de Crédito   563,00
+25/09/2026  Pix                  89,00</pre>
+          <p class="s-foot">O caixa exporta as vendas no modelo que o GestãoClick importa. A nota é emitida lá.</p>
+          <div class="ui-actions"><span class="fake-btn">Exportar para o GestãoClick</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="agenda">
+    <div class="sec-head read" data-tilt="5">
+      <p class="eyebrow">Agenda</p>
+      <h2>Aula, retirada e visita marcadas pelo próprio cliente</h2>
+      <p class="lede">O cliente marca pelo WhatsApp ou pelo link, a IA confere a agenda antes de confirmar e o lembrete sai sozinho. Aulas do Suporte Digital, retiradas, visitas e entregas prometidas ficam no mesmo calendário.</p>
+    </div>
+    <div class="glass week" data-tilt="12" role="img" aria-label="Exemplo da agenda da semana com aulas do Suporte Digital, retiradas de aparelho e visitas técnicas.">
+      <div class="ui-bar">
+        <b>Semana de 28/09</b>
+        <span class="legend"><span class="lg lg-class">Aula · suporte</span><span class="lg lg-pick">Retirada</span><span class="lg lg-visit">Visita</span></span>
+      </div>
+      <div class="days">
+        <div class="day"><p class="d-h">Seg <b>28</b></p><div class="evs">
+          <div class="ev"><span class="ev-k lg lg-class"><time>09:00</time></span><b>Aula: WhatsApp e backup</b><span>Sr. Osvaldo · Plano Premium</span><em class="st ok">Confirmado</em></div>
+          <div class="ev"><span class="ev-k lg lg-pick"><time>17:30</time></span><b>Retirada</b><span>Ordem de Serviço 4830 · Bruno</span><em class="st">Lembrete enviado</em></div>
+        </div></div>
+        <div class="day"><p class="d-h">Ter <b>29</b></p><div class="evs">
+          <div class="ev"><span class="ev-k lg lg-class"><time>14:00</time></span><b>Aula: conta Google</b><span>Dona Marta · Plano Básico</span><em class="st ok">Confirmado</em></div>
+        </div></div>
+        <div class="day"><p class="d-h">Qua <b>30</b></p><div class="evs">
+          <div class="ev"><span class="ev-k lg lg-visit"><time>10:00</time></span><b>Visita técnica</b><span>Escritório Andrade · 2 notebooks</span><em class="st ok">Confirmado</em></div>
+          <div class="ev"><span class="ev-k lg lg-pick"><time>16:00</time></span><b>Retirada</b><span>Ordem de Serviço 4818 · Marcos</span><em class="st wait">Aguardando resposta</em></div>
+        </div></div>
+        <div class="day"><p class="d-h">Qui <b>01</b></p><div class="evs">
+          <div class="ev"><span class="ev-k lg lg-class"><time>15:00</time></span><b>Aula: aparelho novo</b><span>Sra. Helena · Plano Plus</span><em class="st ok">Confirmado</em></div>
+        </div></div>
+        <div class="day"><p class="d-h">Sex <b>02</b></p><div class="evs">
+          <div class="ev"><span class="ev-k lg lg-pick"><time>11:00</time></span><b>Retirada</b><span>Ordem de Serviço 4825 · Aline</span><em class="st ok">Confirmado</em></div>
+        </div></div>
+        <div class="day"><p class="d-h">Sáb <b>03</b></p><div class="evs">
+          <div class="ev"><span class="ev-k lg lg-visit"><time>09:30</time></span><b>Visita técnica</b><span>Condomínio Jardins · 4 aparelhos</span><em class="st wait">Aguardando resposta</em></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="ferramentas">
+    <div class="sec-head read" data-tilt="5">
+      <p class="eyebrow">Bancada e balcão</p>
+      <h2>Ferramentas que ajudam o técnico e o vendedor a acertar mais</h2>
+      <p class="lede">O que antes dependia de experiência ou de um programa separado, agora está dentro do sistema.</p>
+    </div>
+    <div class="tools">
+      <div class="glass tool" data-par=".12"><span class="pill ok">No navegador do aparelho</span><h3>Teste do aparelho</h3><p>O próprio celular do cliente testa toque, tela, som, microfone, câmeras, vibração, rede e bluetooth, sem instalar nada. Inclui teste de esforço.</p><div class="testbar"><span>TOQUE</span><span>TELA</span><span>SOM</span><span>MIC</span><span>CÂMERAS</span><span>REDE</span><span>BT</span></div><span class="pill yl">Laudo completo · em breve</span></div>
+      <div class="glass tool" data-par=".24"><span class="pill cy">Por cabo</span><h3>Limpeza de apps de propaganda</h3><p>Acha o app que enche o celular de anúncio pelo comportamento: quem desenha por cima da tela, quem usa acessibilidade, quem instala outros apps. Remove em lote.</p></div>
+      <div class="glass tool" data-par=".36"><span class="pill mg">No balcão</span><h3>Diagnóstico guiado</h3><p>Perguntas e testes feitos com o cliente na frente, sem abrir o aparelho. O pré-diagnóstico monta sozinho.</p></div>
+      <div class="glass tool" data-par=".12"><span class="pill cy">Para vender melhor</span><h3>Laboratório de películas</h3><p>Mostra ao cliente a diferença entre as películas e os tipos de tela, lado a lado. Tem modo de treinamento com casos de atendimento para a equipe.</p></div>
+      <div class="glass tool" data-par=".24"><span class="pill mg">No link do orçamento</span><h3>Comparador de telas</h3><p>Três preços e uma dúvida? O link explica a diferença entre as qualidades de tela para quem não é técnico, e o cliente não escolhe só pelo preço.</p></div>
+      <div class="glass tool" data-par=".36"><span class="pill ok">Na tabela de preços</span><h3>Calculadora de preço</h3><p>A conta de precificação da loja com o custo real da peça, e a planilha exportada com a calculadora dentro.</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="gestao">
+    <div class="split">
+      <div class="read" data-tilt="4">
+        <div class="sec-head">
+          <p class="eyebrow">Gestão e equipe</p>
+          <h2>Pergunte ao sistema como se fosse um <span class="c">sócio</span></h2>
+          <p class="lede">Fale ou escreva: “abre a encomenda da dona Maria”, “quanto entrou ontem?”. O copiloto abre a tela certa, responde com os números da loja e monta a mensagem para o cliente, mas só envia quando você confirma.</p>
+        </div>
+        <dl class="feat">
+          <div><dt>Três perfis de acesso</dt><dd>O vendedor vê o preço de venda, nunca o custo e a margem.</dd></div>
+          <div><dt>Caixa conferido</dt><dd>Abertura, sangria e fechamento, com a diferença apontada na hora.</dd></div>
+          <div><dt>Ponto e metas</dt><dd>Entrada e saída da equipe, metas e prêmios.</dd></div>
+          <div><dt>Carreira do técnico</dt><dd>Horas de bancada viram pontos e níveis. Quem trabalha mais aparece.</dd></div>
+          <div><dt>Chat e vídeo da equipe</dt><dd>Conversa interna, chamada de vídeo e reunião pelo navegador.</dd></div>
+          <div><dt>Relatórios</dt><dd>Resultado por período, por serviço e por vendedor, e financeiro com contas fixas.</dd></div>
+        </dl>
+      </div>
+      <div class="glass copilot" data-tilt="12" data-spin="-8" role="img" aria-label="Exemplo do copiloto: a pessoa pergunta por voz quanto entrou ontem e recebe o total; depois pede para avisar o cliente da Ordem de Serviço 4821 e o sistema mostra a mensagem antes de enviar.">
+        <div class="ui-bar"><b>Copiloto</b><span class="pill cy">voz ou texto</span></div>
+        <div class="cp-msgs">
+          <p class="cp-you"><small>Você · por voz</small>quanto entrou ontem?</p>
+          <div class="cp-ans"><span>Ontem, sexta 25/09, entraram <b>R$ 4.870,00</b> em 23 vendas.</span>
+            <div class="cp-kpis"><div><small>Serviços</small><b>R$ 3.940</b></div><div><small>Produtos</small><b>R$ 930</b></div><div><small>Aparelhos entregues</small><b>11</b></div></div>
+          </div>
+          <p class="cp-you"><small>Você · por voz</small>avisa a cliente da 4821 que ficou pronto</p>
+          <div class="cp-ans"><span>Mensagem para <b>Juliana Prado</b> · Ordem de Serviço 4821</span><span class="muted">“Oi, Juliana! Seu iPhone 13 ficou pronto. Pode retirar hoje até as 19h.”</span><div class="ui-actions" style="padding:0"><span class="fake-btn">Enviar</span><span class="fake-btn ghost">Editar</span></div></div>
+        </div>
+        <ul class="roles"><li><b>Administrador</b><span>Tudo, inclusive custo, margem e financeiro</span></li><li><b>Técnico</b><span>Bancada, gravações, clientes e cupons</span></li><li><b>Vendedor</b><span>Atendimento, caixa e estoque, sem ver custo</span></li></ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="modulos">
+    <div class="sec-head read" data-tilt="5">
+      <p class="eyebrow">Sistema completo</p>
+      <h2>E o resto da loja no mesmo sistema</h2>
+      <p class="lede">Tudo conversa entre si. A venda no caixa soma ponto no clube, a Ordem de Serviço finalizada gera a garantia e a peça encomendada avisa o cliente quando chega.</p>
+    </div>
+    <ul class="mods">
+      <li data-par=".12"><a class="glass mod" href="#bancada"><span class="mod-top"><span class="code">CRM</span><span class="mod-id">MOD.01</span></span><h3>Clientes e Ordens de Serviço</h3><p>Ficha com ordens, conversas, compras, garantias e pontos no mesmo histórico.</p></a></li>
+      <li data-par=".24"><a class="glass mod" href="#app"><span class="mod-top"><span class="code">Garantia</span><span class="mod-id">MOD.02</span></span><h3>Garantia digital</h3><p>Cartão gerado na entrega, termos assinados e garantia da peça com o fornecedor.</p></a></li>
+      <li data-par=".36"><a class="glass mod" href="#app"><span class="mod-top"><span class="code">Seminovos</span><span class="mod-id">MOD.03</span></span><h3>Seminovos</h3><p>Aparelhos à venda com fotos, direto no catálogo do site.</p></a></li>
+      <li data-par=".48"><a class="glass mod" href="#app"><span class="mod-top"><span class="code">Compra</span><span class="mod-id">MOD.04</span></span><h3>Compra de usado</h3><p>O cliente manda fotos, a IA estima o valor de revenda e o sistema aplica a sua margem.</p></a></li>
+      <li data-par=".12"><a class="glass mod" href="#encomendas"><span class="mod-top"><span class="code">Encomendas</span><span class="mod-id">MOD.05</span></span><h3>Encomendas</h3><p>Anota cliente e produto, avisa quando pediu e quando chegou.</p></a></li>
+      <li data-par=".24"><a class="glass mod" href="#caixa"><span class="mod-top"><span class="code">Estoque</span><span class="mod-id">MOD.06</span></span><h3>Estoque</h3><p>Produtos com baixa na venda e aviso de estoque baixo. Peças com custo.</p></a></li>
+      <li data-par=".36"><a class="glass mod" href="#caixa"><span class="mod-top"><span class="code">Caixa</span><span class="mod-id">MOD.07</span></span><h3>Caixa e PDV</h3><p>PDV em tela cheia para o balcão e maquininha integrada.</p></a></li>
+      <li data-par=".48"><a class="glass mod" href="#caixa"><span class="mod-top"><span class="code">Clube</span><span class="mod-id">MOD.08</span></span><h3>Clube e combos</h3><p>Níveis, missões, roleta de prêmios e combos que só existem no app.</p></a></li>
+      <li data-par=".12"><a class="glass mod" href="#whatsapp"><span class="mod-top"><span class="code">Aniversário</span><span class="mod-id">MOD.09</span></span><h3>Aniversários</h3><p>Mensagem com cupom no dia, para o cliente lembrar da loja.</p></a></li>
+      <li data-par=".24"><a class="glass mod" href="#gestao"><span class="mod-top"><span class="code">Impressão</span><span class="mod-id">MOD.10</span></span><h3>Impressão</h3><p>Imprime documentos do cliente, conta as folhas e cobra certo.</p></a></li>
+      <li data-par=".36"><a class="glass mod" href="#gestao"><span class="mod-top"><span class="code">Cartilhas</span><span class="mod-id">MOD.11</span></span><h3>Cartilhas</h3><p>Materiais de orientação para entregar ao cliente.</p></a></li>
+      <li data-par=".48"><a class="glass mod" href="#gestao"><span class="mod-top"><span class="code">TV</span><span class="mod-id">MOD.12</span></span><h3>TV da loja</h3><p>Tela com os aparelhos consertados para exibir no balcão.</p></a></li>
+    </ul>
+  </section>
+
+  <section class="section" id="precos">
+    <div class="sec-head read" data-tilt="5">
+      <p class="eyebrow">Planos</p>
+      <h2>Escolha pelo tamanho da sua assistência</h2>
+      <p class="lede">Todos os planos têm Ordem de Serviço com bancada ao vivo, área do cliente, avisos no WhatsApp, caixa e estoque.</p>
+      <p class="offer">30 dias grátis em qualquer plano <b>· implantação presencial em Florianópolis</b></p>
+      <p class="example-note">Valores de exemplo</p>
+    </div>
+    <div class="plans">
+      <div class="plan-wrap" data-par=".12">
+        <article class="glass plan">
+          <h3>Bancada</h3>
+          <p class="for">Para a assistência com um ou dois técnicos.</p>
+          <p class="price"><span>R$</span>129<small>/mês</small></p>
+          <ul>
+            <li>1 loja e 2 usuários</li>
+            <li>Ordem de Serviço com bancada ao vivo e área do cliente</li>
+            <li>Avisos automáticos no WhatsApp</li>
+            <li>Caixa, maquininha e estoque</li>
+            <li>Garantia digital e exportação para o GestãoClick</li>
+          </ul>
+          <a class="btn btn-ghost" data-wa data-plan="Bancada" href="#contato">Testar o Bancada</a>
+        </article>
+      </div>
+      <div class="plan-wrap hot" data-par=".3">
+        <article class="glass plan">
+          <div class="plan-top"><h3>Loja</h3><span class="pill yl">Recomendado</span></div>
+          <p class="for">Para quem quer vender mais com o que já atende.</p>
+          <p class="price"><span>R$</span>239<small>/mês</small></p>
+          <ul>
+            <li>Tudo do Bancada, com 5 usuários</li>
+            <li>Atendimento com IA no WhatsApp e funil</li>
+            <li>Suporte Digital para vender planos</li>
+            <li>Clube, combos e cupons no app</li>
+            <li>Copiloto por voz e ferramentas de bancada</li>
+          </ul>
+          <a class="btn" data-wa data-plan="Loja" href="#contato">Testar o Loja</a>
+        </article>
+      </div>
+      <div class="plan-wrap" data-par=".12">
+        <article class="glass plan">
+          <h3>Rede</h3>
+          <p class="for">Para quem tem mais de uma loja.</p>
+          <p class="price"><span>R$</span>449<small>/mês</small></p>
+          <ul>
+            <li>Tudo do Loja</li>
+            <li>Até 3 lojas</li>
+            <li>Usuários ilimitados</li>
+            <li>Estoque separado por loja</li>
+            <li>Relatórios por loja e por técnico</li>
+          </ul>
+          <a class="btn btn-ghost" data-wa data-plan="Rede" href="#contato">Testar o Rede</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq" id="duvidas">
+    <div class="sec-head read" data-tilt="5">
+      <p class="eyebrow">Dúvidas</p>
+      <h2>Perguntas que a gente sempre ouve</h2>
+    </div>
+    <dl class="qa read">
+      <div><dt>Como funcionam os 30 dias grátis?</dt><dd>Você usa o sistema completo na sua loja por 30 dias antes de pagar. Em Florianópolis, a gente vai até a loja fazer a implantação e treinar a equipe. Fora da Ilha, a implantação é online.</dd></div>
+      <div><dt>O atendimento com IA fala como a minha loja?</dt><dd>Fala. Ele responde com os seus preços, o seu estoque e a sua agenda, no tom que você definir. Quando precisar, alguém da equipe assume a conversa e vê o resumo do que já foi dito.</dd></div>
+      <div><dt>O YAXUM emite nota fiscal?</dt><dd>Não emite. O caixa exporta as vendas numa planilha no modelo do GestãoClick, e a nota é emitida lá.</dd></div>
+      <div><dt>Já uso o GestãoClick. Consigo trazer as minhas Ordens de Serviço?</dt><dd>Consegue. O YAXUM lê a Ordem de Serviço em PDF do GestãoClick e preenche a nova Ordem de Serviço.</dd></div>
+      <div><dt>O cliente precisa baixar algum aplicativo?</dt><dd>Não. A área do cliente, o link da Ordem de Serviço e o vídeo do conserto abrem no navegador do celular.</dd></div>
+      <div><dt>Como funcionam as aulas do Suporte Digital?</dt><dd>A loja cadastra o plano, o cliente recebe um link com o código dele e marca o horário sozinho. O sistema acompanha o vencimento para a renovação.</dd></div>
+    </dl>
+  </section>
+
+  <section class="cta" id="contato" data-tilt="10">
+    <div>
+      <h2>Seja uma das primeiras assistências da Ilha no YAXUM.</h2>
+      <p>Teste 30 dias grátis. Em Florianópolis, a gente vai até a sua loja instalar, conectar o WhatsApp e treinar a equipe.</p>
+      <span class="cta-num">WhatsApp: (48) 99203-7431</span>
+    </div>
+    <a class="btn" data-wa href="#contato">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.4-.3Z"/></svg>
+      Testar 30 dias grátis
+    </a>
+  </section>
+</main>
+
+<footer class="foot" id="rodape">
+  <a class="brand" href="#top" aria-label="YAXUM, voltar ao início"><img class="brand-logo" src="yaxum-cubo-nav.png" alt="YAXUM" width="549" height="180" loading="lazy" decoding="async"></a>
+  <p>Sistema para assistência técnica · feito em Florianópolis</p>
+  <p class="mono tnum" style="font-size:12px">WhatsApp (48) 99203-7431 · © 2026 YAXUM</p>
+  <p class="modo-linha"><button type="button" class="modo-btn" data-modo aria-pressed="false">Usar o modo leve</button><span>Modo leve: sem o laboratório 3D, para celular e computador antigos.</span></p>
+</footer>
+<div class="modo-aviso" id="modoAviso" role="status" hidden>
+  <p>O laboratório 3D estava pesado neste aparelho, então ligamos o modo leve. O resto da página continua igual.</p>
+  <button type="button" class="modo-btn" data-modo>Ver o laboratório em 3D</button>
+  <button type="button" class="modo-x" id="modoAvisoX" aria-label="Fechar o aviso">×</button>
+</div>
+<div class="fim-logo" id="fimLogo" aria-hidden="true"></div>
+
+<script>
+/*MAIN-JS*/
+</script>
+
+

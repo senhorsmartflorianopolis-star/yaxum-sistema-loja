@@ -1,0 +1,86 @@
+  <section class="section" id="privacidade">
+    <div class="sec-head read gp-head">
+      <p class="eyebrow">Galeria Protegida · LGPD</p>
+      <h2>O técnico conserta sem ver as <span class="m">fotos do cliente</span></h2>
+      <p class="lede">Antes de a bancada começar, o YAXUM ativa a Galeria Protegida, manda o termo da LGPD no WhatsApp e só libera a bancada com o aceite por escrito. No Samsung, o Modo de manutenção esconde fotos e conversas sem o cliente passar a senha. No iPhone, a senha entra só por um link seguro, e cada desbloqueio aparece para o cliente.</p>
+      <p class="gp-try"><b>Teste aqui:</b> escolha o aparelho, toque em Ativar e responda no WhatsApp como se fosse o cliente. Tente mandar um áudio.</p>
+    </div>
+
+    <div class="gp-grid" id="gpDemo">
+      <div class="glass gp-bench">
+        <div class="ui-bar"><b>Bancada 2 · Ordem de Serviço 4821</b><span class="pill cy" id="gpBenchPill">aguardando</span></div>
+        <div class="gp-pad">
+          <p class="q-label">Aparelho</p>
+          <div class="seg-pick" role="group" aria-label="Escolha o aparelho">
+            <button type="button" data-dev="samsung" aria-pressed="true">Galaxy S23</button>
+            <button type="button" data-dev="iphone" aria-pressed="false">iPhone 13</button>
+          </div>
+          <div class="gp-method" id="gpMethod"></div>
+          <ol class="gp-steps" id="gpSteps">
+            <li data-s="termo"><i></i><span>Termo da LGPD enviado no WhatsApp</span></li>
+            <li data-s="aceite"><i></i><span>Aceite por escrito do cliente</span></li>
+            <li data-s="protecao"><i></i><span id="gpStepProt">Modo de manutenção ativo</span></li>
+            <li data-s="bancada"><i></i><span>Bancada gravando ao vivo</span></li>
+            <li data-s="entrega"><i></i><span>Entrega: senha apagada</span></li>
+          </ol>
+          <div class="gp-actions">
+            <button type="button" class="btn btn-sm" id="gpAtivar">Ativar Galeria Protegida</button>
+            <button type="button" class="btn btn-sm btn-ghost" id="gpSenha" hidden>Cliente digitou a senha no link</button>
+            <button type="button" class="btn btn-sm btn-ghost" id="gpIniciar" disabled>Iniciar bancada</button>
+            <button type="button" class="btn btn-sm btn-ghost" id="gpEntregar" hidden>Entregar aparelho</button>
+          </div>
+          <p class="gp-log" id="gpLog" aria-live="polite"></p>
+          <button type="button" class="gp-reset" id="gpReset">Recomeçar a demonstração</button>
+        </div>
+      </div>
+
+      <div class="glass chat gp-wa">
+        <div class="ui-bar">
+          <span class="chat-who"><span class="avatar">LX</span><span><b>Loja Exemplo</b><br><span class="muted small">WhatsApp do cliente</span></span></span>
+          <span class="pill ok">online</span>
+        </div>
+        <div class="msgs gp-msgs" id="gpMsgs" aria-live="polite"></div>
+        <div class="gp-quick" id="gpQuick" aria-label="Respostas rápidas do cliente">
+          <button type="button" data-say="ok">ok</button>
+          <button type="button" data-say="blz 👍">blz 👍</button>
+          <button type="button" data-audio="1">🎤 Mandar áudio</button>
+          <button type="button" data-say="REVOGO">REVOGO</button>
+        </div>
+        <form class="cb-form gp-form" id="gpForm" autocomplete="off">
+          <label class="sr" for="gpIn">Resposta do cliente</label>
+          <input id="gpIn" type="text" maxlength="120" placeholder="Responda como o cliente: ACEITO, ok, não…">
+          <button type="submit" class="btn btn-sm">Enviar</button>
+        </form>
+        <div class="gp-sheet" id="gpSheet" hidden role="dialog" aria-label="Termo de privacidade">
+          <div class="gp-sheet-in">
+            <div class="gp-sheet-top"><b>Termo de consentimento · Galeria Protegida</b><button type="button" class="cb-x" id="gpSheetX" aria-label="Fechar o termo">×</button></div>
+            <p class="small muted">Lei nº 13.709/2018 (LGPD) · Ordem de Serviço 4821 · Loja Exemplo</p>
+            <ol class="gp-terms">
+              <li>O acesso ao aparelho serve só para testar e consertar o defeito desta Ordem de Serviço.</li>
+              <li>O técnico não abre galeria, conversas, e-mail, redes sociais nem apps de banco, e não copia nada.</li>
+              <li id="gpTermMethod">Método de proteção: Modo de manutenção.</li>
+              <li>A senha, se precisar, fica criptografada, cada uso é registrado e ela é apagada na entrega.</li>
+              <li>O vídeo da bancada é só seu e é apagado depois do prazo da loja.</li>
+              <li>Você pode revogar este consentimento a qualquer momento, de graça, escrevendo REVOGO.</li>
+              <li>Se não aceitar, o conserto continua sem acesso ao aparelho.</li>
+            </ol>
+            <p class="gp-decl"><b>Declaro que li e concordo</b> com o tratamento dos meus dados pessoais descrito neste termo, somente para o teste e o conserto do aparelho desta Ordem de Serviço.</p>
+            <label class="gp-check"><input type="checkbox" id="gpCheck"> <span>Li e concordo com o termo</span></label>
+            <button type="button" class="btn btn-sm" id="gpConfirm" disabled>Confirmar aceite</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass gp-track">
+        <div class="ui-bar"><b>Acompanhamento do cliente</b><span class="pill" id="gpTrackPill">link do cliente</span></div>
+        <div class="gp-pad">
+          <div class="gp-gallery" id="gpGallery" aria-label="Galeria do cliente">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+            <div class="gp-lock" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm-3 8V7a3 3 0 0 1 6 0v3H9Zm3 4a2 2 0 0 1 1 3.7V19h-2v-1.3A2 2 0 0 1 12 14Z"/></svg></div>
+          </div>
+          <p class="gp-badge" id="gpBadge">Galeria ainda não protegida</p>
+          <ul class="gp-timeline" id="gpTimeline"><li><time>14:30</time>Aparelho recebido na loja</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
