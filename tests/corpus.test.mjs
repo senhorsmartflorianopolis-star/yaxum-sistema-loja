@@ -48,3 +48,18 @@ test("preserva classificação científica e lote", () => {
   assert.equal(chunk.metadata.knowledge_kind, "neurociencia");
   assert.match(chunk.metadata.epistemic_note, /não localização/);
 });
+
+test("exige alerta epistêmico em fonte primária histórica", () => {
+  assert.throws(() => validateRecord({
+    ...base,
+    knowledge_kind: "fonte-primaria-historica",
+    model_status: "funcional",
+    epistemic_note: "Modelo vigente."
+  }, config), /model_status histórico|nota epistêmica explícita/);
+  assert.doesNotThrow(() => validateRecord({
+    ...base,
+    knowledge_kind: "fonte-primaria-historica",
+    model_status: "historico-nao-anatomico",
+    epistemic_note: "Fonte histórica, não consenso científico atual."
+  }, config));
+});

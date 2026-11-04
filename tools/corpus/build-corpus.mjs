@@ -30,6 +30,12 @@ export function validateRecord(record, config, location = "registro") {
   const topics = Array.isArray(record.topics) ? record.topics : [];
   const forbidden = topics.filter((topic) => config.excluded_scopes.includes(topic));
   if (forbidden.length) errors.push(`escopo ético bloqueado: ${forbidden.join(", ")}`);
+  if (record.knowledge_kind === "fonte-primaria-historica") {
+    if (!record.model_status?.includes("historico")) errors.push("fonte histórica precisa de model_status histórico");
+    if (!normalize(record.epistemic_note).toLocaleLowerCase("pt-BR").includes("históric")) {
+      errors.push("fonte histórica precisa de nota epistêmica explícita");
+    }
+  }
   if (errors.length) throw new Error(`${location}: ${errors.join("; ")}`);
 }
 

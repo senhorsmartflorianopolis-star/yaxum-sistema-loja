@@ -27,6 +27,10 @@ Cada lote recebe um `batch_id`. O relatório agrupa documentos por lote, tema e 
 
 O histórico aprovado e o próximo lote planejado ficam em `batches.json`.
 
+### Fontes históricas integrais
+
+Obras em domínio público podem ser mantidas em `knowledge/source-texts/` e convertidas em registros rastreáveis. Execute `npm run corpus:import:freud-dreams` para reproduzir o lote histórico 008 antes de reconstruir o corpus. Essas fontes devem usar `knowledge_kind: fonte-primaria-historica`, `model_status` histórico e uma nota epistêmica explícita. Elas servem para pesquisa da história das ideias e nunca devem ser apresentadas como anatomia, diagnóstico ou consenso experimental contemporâneo.
+
 ## Persuasão ética
 
 O corpus pode abordar argumentação, negociação, confiança, comunicação e tomada de decisão. Não deve incluir instruções destinadas a coerção, fraude, exploração de vulnerabilidades ou manipulação enganosa. Esses escopos estão bloqueados em `config.json` e devem continuar bloqueados na camada de resposta.

@@ -1,6 +1,8 @@
 {
   "version": 1,
   "target_words": 10000000,
+  "current_milestone_words": 100000,
+  "current_milestone_status": "reached",
   "batches": [
     {
       "id": "brain-foundations-001",
@@ -114,10 +116,26 @@
         "verdade ilusória",
         "correção de desinformação"
       ]
+    },
+    {
+      "id": "historical-freud-dreams-008",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 18,
+      "words": 206434,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "fonte primária histórica",
+        "interpretação dos sonhos",
+        "inconsciente psicanalítico",
+        "trabalho do sonho",
+        "história da psicanálise"
+      ],
+      "epistemic_scope": "Obra histórica em domínio público; não representa consenso neurocientífico contemporâneo."
     }
   ],
   "next_batch": {
-    "id": "memory-language-trauma-008",
+    "id": "memory-language-trauma-009",
     "planned_topics": [
       "memória de trabalho e consolidação",
       "linguagem e significado",
