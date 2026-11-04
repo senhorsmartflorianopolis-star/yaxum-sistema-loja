@@ -1,7 +1,7 @@
 {
   "version": 1,
   "target_words": 10000000,
-  "current_milestone_words": 1000000,
+  "current_milestone_words": 10000000,
   "current_milestone_status": "reached",
   "batches": [
     {
@@ -192,17 +192,87 @@
       "completed_at": "2026-11-04",
       "topics": ["repetição", "trauma", "pulsão", "princípio do prazer"],
       "epistemic_scope": "Modelo teórico histórico; conceitos como pulsão de morte não são entidades anatômicas."
+    },
+    {
+      "id": "wikipedia-brain-behavior-015",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 271,
+      "words": 1003385,
+      "completed_at": "2026-11-04",
+      "topics": ["neurociência", "ciência cognitiva", "psicologia", "comportamento humano", "psicanálise"],
+      "epistemic_scope": "Referência enciclopédica terciária; verificar afirmações importantes em fontes científicas primárias ou revisões."
+    },
+    {
+      "id": "wikipedia-social-development-016",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 417,
+      "words": 1504206,
+      "completed_at": "2026-11-04",
+      "topics": ["psicologia social", "desenvolvimento", "personalidade", "emoção", "motivação"],
+      "epistemic_scope": "Referência enciclopédica terciária; associações populacionais não autorizam diagnóstico individual."
+    },
+    {
+      "id": "wikipedia-cognition-learning-017",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 520,
+      "words": 1500346,
+      "completed_at": "2026-11-04",
+      "topics": ["cognição", "aprendizagem", "memória", "linguagem", "decisão", "economia comportamental"],
+      "epistemic_scope": "Referência enciclopédica terciária; modelos cognitivos e efeitos experimentais dependem de contexto."
+    },
+    {
+      "id": "wikipedia-clinical-mental-health-018",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 384,
+      "words": 1410173,
+      "completed_at": "2026-11-04",
+      "topics": ["psicologia clínica", "psicoterapia", "saúde mental", "estresse", "trauma"],
+      "epistemic_scope": "Conteúdo informativo terciário; não constitui diagnóstico, prescrição ou orientação médica individual."
+    },
+    {
+      "id": "wikipedia-neuroscience-systems-019",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 332,
+      "words": 933280,
+      "completed_at": "2026-11-04",
+      "topics": ["cérebro", "sistema nervoso", "neuroanatomia", "neurofisiologia", "sentidos", "sono"],
+      "epistemic_scope": "Referência enciclopédica terciária; não substituir revisões biomédicas nem avaliação clínica."
+    },
+    {
+      "id": "wikipedia-behavior-society-020",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 699,
+      "words": 2006576,
+      "completed_at": "2026-11-04",
+      "topics": ["sociologia", "antropologia", "comunicação", "grupos", "cultura", "educação"],
+      "epistemic_scope": "Referência enciclopédica terciária; evitar determinismo cultural, estereótipos e uso coercivo."
+    },
+    {
+      "id": "wikipedia-mind-reasoning-ethics-021",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 214,
+      "words": 800320,
+      "completed_at": "2026-11-04",
+      "topics": ["filosofia da mente", "consciência", "raciocínio", "pensamento crítico", "persuasão", "ética"],
+      "epistemic_scope": "Referência enciclopédica terciária; influência deve preservar autonomia e excluir coerção ou engano."
     }
   ],
   "next_batch": {
-    "id": "historical-behavior-library-015",
+    "id": "scientific-quality-enrichment-022",
     "planned_topics": [
-      "psicologia experimental histórica",
-      "aprendizagem e comportamento",
-      "emoção e fisiologia",
-      "psicologia social",
-      "desenvolvimento e educação",
-      "crítica epistemológica contemporânea"
+      "revisões sistemáticas contemporâneas",
+      "fontes oficiais de saúde e neurociência",
+      "sínteses científicas em português",
+      "auditoria de afirmações enciclopédicas",
+      "atualização e versionamento de fontes",
+      "avaliação de recuperação RAG"
     ]
   }
 }

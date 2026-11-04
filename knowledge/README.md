@@ -27,6 +27,10 @@ Cada lote recebe um `batch_id`. O relatório agrupa documentos por lote, tema e 
 
 O histórico aprovado e o próximo lote planejado ficam em `batches.json`.
 
+### Coleta enciclopédica rastreável
+
+`npm run corpus:collect:wikipedia -- --target-words=1000000 --batch=wikipedia-exemplo-001 "--categories=Psychology|Neuroscience"` cria um lote recomeçável pela API MediaWiki. Cada artigo mantém URL canônica, ID da revisão, link para o histórico de autores e licença CC BY-SA 4.0. Artigos já presentes em qualquer lote `wikipedia-*.jsonl` são ignorados. O texto é fonte terciária colaborativa: respostas de alto impacto devem confirmar a afirmação em revisões científicas, fontes oficiais ou literatura primária.
+
 ### Fontes históricas integrais
 
 Obras em domínio público podem ser mantidas em `knowledge/source-texts/` e convertidas em registros rastreáveis. Execute `npm run corpus:import:freud-dreams` para reproduzir o lote histórico 008 e `npm run corpus:import:historical-library` para os lotes 009–014 antes de reconstruir o corpus. Essas fontes devem usar `knowledge_kind: fonte-primaria-historica`, `model_status` histórico e uma nota epistêmica explícita. Elas servem para pesquisa da história das ideias e nunca devem ser apresentadas como anatomia, diagnóstico ou consenso experimental contemporâneo.

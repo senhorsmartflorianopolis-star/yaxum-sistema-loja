@@ -35,18 +35,20 @@
     "batch_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
     "knowledge_kind": {
       "type": "string",
-      "enum": ["anatomia", "neurociencia", "ciencia-cognitiva", "modelo-psicanalitico", "historia-das-ideias"]
+      "enum": ["anatomia", "neurociencia", "ciencia-cognitiva", "ciencia-da-comunicacao", "ciencia-da-decisao", "fonte-primaria-historica", "historia-das-ideias", "metaciencia", "metacognicao", "modelo-psicanalitico", "neurociencia-cognitiva-social", "neurociencia-do-desenvolvimento", "psicologia-cognitiva", "psicologia-da-personalidade", "psicologia-do-desenvolvimento", "referencia-enciclopedica"]
     },
     "evidence_level": {
       "type": "string",
-      "enum": ["referencia-oficial", "revisao-sistematica", "revisao-cientifica", "pesquisa-primaria", "modelo-clinico-historico"]
+      "enum": ["artigo-teorico-empirico", "fonte-terciaria", "meta-analise", "modelo-clinico-historico", "pesquisa-primaria", "referencia-oficial", "revisao", "revisao-cientifica", "revisao-metodologica", "revisao-sistematica", "revisao-sistematica-meta-analise", "texto-historico-dominio-publico"]
     },
     "model_status": {
       "type": "string",
-      "enum": ["anatomico", "funcional", "teorico", "clinico-historico"]
+      "enum": ["anatomico", "aplicado", "clinico-historico", "computacional", "desenvolvimental", "dimensional", "funcional", "historico-nao-anatomico", "limite-de-inferencia", "metacognitivo", "referencia-requer-verificacao", "teorico"]
     },
     "epistemic_note": { "type": "string" },
     "source_rights_note": { "type": "string" },
+    "source_history_url": { "type": "string", "format": "uri", "pattern": "^https://" },
+    "source_revision": { "type": ["integer", "null"] },
     "published_at": { "type": "string", "format": "date" },
     "retrieved_at": { "type": "string", "format": "date" },
     "notes": { "type": "string" }

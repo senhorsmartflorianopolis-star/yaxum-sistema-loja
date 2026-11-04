@@ -63,3 +63,16 @@ test("exige alerta epistêmico em fonte primária histórica", () => {
     epistemic_note: "Fonte histórica, não consenso científico atual."
   }, config));
 });
+
+test("exige revisão, histórico e share-alike em referência enciclopédica", () => {
+  const encyclopedic = {
+    ...base,
+    knowledge_kind: "referencia-enciclopedica",
+    license: "CC-BY-SA-4.0",
+    source_revision: 12345,
+    source_history_url: "https://example.com/fonte?action=history"
+  };
+  assert.doesNotThrow(() => validateRecord(encyclopedic, config));
+  assert.throws(() => validateRecord({ ...encyclopedic, source_revision: null }, config), /revisão rastreável/);
+  assert.throws(() => validateRecord({ ...encyclopedic, license: "CC-BY-4.0" }, config), /CC-BY-SA-4.0/);
+});

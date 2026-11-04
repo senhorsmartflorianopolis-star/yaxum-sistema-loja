@@ -36,6 +36,16 @@ export function validateRecord(record, config, location = "registro") {
       errors.push("fonte histórica precisa de nota epistêmica explícita");
     }
   }
+  if (record.knowledge_kind === "referencia-enciclopedica") {
+    if (record.license !== "CC-BY-SA-4.0") errors.push("referência enciclopédica precisa preservar CC-BY-SA-4.0");
+    if (!Number.isInteger(record.source_revision)) errors.push("referência enciclopédica precisa de revisão rastreável");
+    try {
+      const historyUrl = new URL(record.source_history_url);
+      if (historyUrl.protocol !== "https:") errors.push("histórico da fonte precisa usar HTTPS");
+    } catch {
+      errors.push("referência enciclopédica precisa de histórico de autoria");
+    }
+  }
   if (errors.length) throw new Error(`${location}: ${errors.join("; ")}`);
 }
 
@@ -70,7 +80,9 @@ export function chunkRecord(record, config) {
         evidence_level: record.evidence_level || null,
         model_status: record.model_status || null,
         epistemic_note: record.epistemic_note || null,
-        source_rights_note: record.source_rights_note || null
+        source_rights_note: record.source_rights_note || null,
+        source_history_url: record.source_history_url || null,
+        source_revision: record.source_revision || null
       }
     });
     if (start + size >= words.length) break;
