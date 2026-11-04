@@ -1,7 +1,7 @@
 {
   "version": 1,
   "target_words": 10000000,
-  "current_milestone_words": 100000,
+  "current_milestone_words": 1000000,
   "current_milestone_status": "reached",
   "batches": [
     {
@@ -132,17 +132,77 @@
         "história da psicanálise"
       ],
       "epistemic_scope": "Obra histórica em domínio público; não representa consenso neurocientífico contemporâneo."
+    },
+    {
+      "id": "historical-james-psychology-v1-009",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 24,
+      "words": 278679,
+      "completed_at": "2026-11-04",
+      "topics": ["consciência", "atenção", "hábito", "memória", "psicologia histórica"],
+      "epistemic_scope": "Fonte histórica; conceitos e linguagem podem estar desatualizados."
+    },
+    {
+      "id": "historical-james-psychology-v2-010",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 24,
+      "words": 280424,
+      "completed_at": "2026-11-04",
+      "topics": ["sensação", "percepção", "raciocínio", "vontade", "psicologia histórica"],
+      "epistemic_scope": "Fonte histórica; conceitos e linguagem podem estar desatualizados."
+    },
+    {
+      "id": "historical-freud-everyday-life-011",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 6,
+      "words": 71611,
+      "completed_at": "2026-11-04",
+      "topics": ["lapsos", "memória", "inconsciente", "psicanálise histórica"],
+      "epistemic_scope": "Fonte psicanalítica histórica; não constitui comprovação experimental contemporânea."
+    },
+    {
+      "id": "historical-darwin-expression-emotions-012",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 10,
+      "words": 109369,
+      "completed_at": "2026-11-04",
+      "topics": ["emoção", "expressão", "comportamento comparado", "evolução"],
+      "epistemic_scope": "Fonte histórica; não deve substituir evidências contemporâneas sobre emoção ou expressão."
+    },
+    {
+      "id": "historical-freud-group-psychology-013",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 3,
+      "words": 30442,
+      "completed_at": "2026-11-04",
+      "topics": ["grupos", "identificação", "ego", "psicologia social histórica"],
+      "epistemic_scope": "Modelo psicanalítico histórico; não deve ser usado para manipulação de grupos."
+    },
+    {
+      "id": "historical-freud-beyond-pleasure-014",
+      "status": "validated-import",
+      "language": "en",
+      "documents": 2,
+      "words": 23075,
+      "completed_at": "2026-11-04",
+      "topics": ["repetição", "trauma", "pulsão", "princípio do prazer"],
+      "epistemic_scope": "Modelo teórico histórico; conceitos como pulsão de morte não são entidades anatômicas."
     }
   ],
   "next_batch": {
-    "id": "memory-language-trauma-009",
+    "id": "historical-behavior-library-015",
     "planned_topics": [
-      "memória de trabalho e consolidação",
-      "linguagem e significado",
-      "aprendizagem por reforço e observação",
-      "medo, extinção e segurança",
-      "trauma e memória sem determinismo",
-      "reconsolidação e limites clínicos"
+      "psicologia experimental histórica",
+      "aprendizagem e comportamento",
+      "emoção e fisiologia",
+      "psicologia social",
+      "desenvolvimento e educação",
+      "crítica epistemológica contemporânea"
     ]
   }
 }

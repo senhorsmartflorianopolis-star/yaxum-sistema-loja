@@ -29,7 +29,7 @@ O histórico aprovado e o próximo lote planejado ficam em `batches.json`.
 
 ### Fontes históricas integrais
 
-Obras em domínio público podem ser mantidas em `knowledge/source-texts/` e convertidas em registros rastreáveis. Execute `npm run corpus:import:freud-dreams` para reproduzir o lote histórico 008 antes de reconstruir o corpus. Essas fontes devem usar `knowledge_kind: fonte-primaria-historica`, `model_status` histórico e uma nota epistêmica explícita. Elas servem para pesquisa da história das ideias e nunca devem ser apresentadas como anatomia, diagnóstico ou consenso experimental contemporâneo.
+Obras em domínio público podem ser mantidas em `knowledge/source-texts/` e convertidas em registros rastreáveis. Execute `npm run corpus:import:freud-dreams` para reproduzir o lote histórico 008 e `npm run corpus:import:historical-library` para os lotes 009–014 antes de reconstruir o corpus. Essas fontes devem usar `knowledge_kind: fonte-primaria-historica`, `model_status` histórico e uma nota epistêmica explícita. Elas servem para pesquisa da história das ideias e nunca devem ser apresentadas como anatomia, diagnóstico ou consenso experimental contemporâneo.
 
 ## Persuasão ética
 
