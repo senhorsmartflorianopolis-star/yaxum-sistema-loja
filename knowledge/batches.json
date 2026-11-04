@@ -18,16 +18,113 @@
         "modelo psicanalítico",
         "qualidade da evidência"
       ]
+    },
+    {
+      "id": "brain-systems-002",
+      "status": "reviewed",
+      "language": "pt-BR",
+      "documents": 6,
+      "words": 1006,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "atenção e orientação",
+        "controle cognitivo",
+        "rede de modo padrão",
+        "rede de saliência",
+        "recompensa e hábito",
+        "regulação emocional"
+      ]
+    },
+    {
+      "id": "psychoanalysis-foundations-003",
+      "status": "reviewed",
+      "language": "pt-BR",
+      "documents": 6,
+      "words": 982,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "defesas e repressão",
+        "sonhos",
+        "lapsos",
+        "repetição",
+        "transferência e contratransferência",
+        "grupos e identificação"
+      ]
+    },
+    {
+      "id": "ethical-influence-004",
+      "status": "reviewed",
+      "language": "pt-BR",
+      "documents": 6,
+      "words": 931,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "persuasão e elaboração",
+        "reatância e autonomia",
+        "normas sociais",
+        "identidade de grupo",
+        "entrevista motivacional",
+        "padrões enganosos"
+      ]
+    },
+    {
+      "id": "neural-depth-005",
+      "status": "reviewed",
+      "language": "pt-BR",
+      "documents": 6,
+      "words": 858,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "neurônios e glia",
+        "sinapses e neurotransmissores",
+        "plasticidade",
+        "estresse agudo",
+        "estresse crônico e alostase",
+        "sono"
+      ]
+    },
+    {
+      "id": "development-social-006",
+      "status": "reviewed",
+      "language": "pt-BR",
+      "documents": 6,
+      "words": 845,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "vínculo e regulação emocional",
+        "adolescência e plasticidade",
+        "mentalização",
+        "empatia",
+        "traços de personalidade",
+        "limites da neuroimagem da personalidade"
+      ]
+    },
+    {
+      "id": "decision-metacognition-007",
+      "status": "reviewed",
+      "language": "pt-BR",
+      "documents": 6,
+      "words": 737,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "heurísticas e vieses",
+        "enquadramento",
+        "viés de confirmação",
+        "metacognição",
+        "verdade ilusória",
+        "correção de desinformação"
+      ]
     }
   ],
   "next_batch": {
-    "id": "brain-systems-002",
+    "id": "memory-language-trauma-008",
     "planned_topics": [
-      "redes de atenção e controle executivo",
-      "rede de modo padrão",
-      "saliência e tomada de decisão",
-      "hábitos, recompensa e motivação",
-      "mecanismos de defesa e regulação emocional"
+      "memória de trabalho e consolidação",
+      "linguagem e significado",
+      "aprendizagem por reforço e observação",
+      "medo, extinção e segurança",
+      "trauma e memória sem determinismo",
+      "reconsolidação e limites clínicos"
     ]
   }
 }
