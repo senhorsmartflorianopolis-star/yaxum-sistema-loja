@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "target_words": 10000000,
+  "default_language": "pt-BR",
+  "chunk_words": 600,
+  "chunk_overlap_words": 80,
+  "allowed_licenses": [
+    "CC0-1.0",
+    "CC-BY-4.0",
+    "CC-BY-SA-4.0",
+    "PDM-1.0"
+  ],
+  "required_topics": [
+    "psicanalise",
+    "comportamento-humano",
+    "persuasao-etica"
+  ],
+  "excluded_scopes": [
+    "coercao",
+    "fraude",
+    "exploracao-de-vulnerabilidade",
+    "manipulacao-enganosa"
+  ]
+}

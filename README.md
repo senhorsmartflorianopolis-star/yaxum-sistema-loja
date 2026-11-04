@@ -12,6 +12,8 @@ A página roda sozinha, sem servidor: é um `index.html` mais os arquivos do cé
 | `cerebro-mapa.json` | Mapa leve do cérebro (títulos, áreas, posições, ligações). |
 | `cerebro-compactado.txt` | O cérebro inteiro em gzip + base64 (~1,2 MB). |
 | `cerebro.json` | O mesmo cérebro sem compactar (reserva para navegador antigo). |
+| `knowledge/` | Corpus externo, licenças, esquema e preparação para busca vetorial. |
+| `tools/corpus/` | Limpeza, validação, deduplicação e divisão do corpus em trechos. |
 | `lab-poster*.jpg`, `yaxum-cubo*` | Imagens da página. |
 | `fonte/` | O código-fonte, para editar. |
 
@@ -38,6 +40,15 @@ Se o cérebro mudar (novo `cerebro.json`), refaça o mapa e o arquivo compactado
 node fonte/gerar-dados-site.js     # lê cerebro.json e regrava cerebro-mapa.json e cerebro-compactado.txt
 node fonte/teste-seguranca.js      # conferência: risco (gás, choque, bateria estufada) vem sempre primeiro
 ```
+
+Para preparar conhecimento extenso sem sobrecarregar o cérebro do navegador:
+
+```bash
+npm run corpus:build               # gera trechos deduplicados e relatório de progresso
+npm test                           # valida o corpus e preserva os testes de segurança
+```
+
+Veja `knowledge/README.md` para o formato das fontes e a separação entre o cérebro operacional e o corpus destinado a RAG.
 
 ### Onde fica cada parte
 

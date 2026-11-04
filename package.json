@@ -1,0 +1,8 @@
+{
+  "name": "yaxum-sistema-loja",
+  "private": true,
+  "scripts": {
+    "corpus:build": "node tools/corpus/build-corpus.mjs",
+    "test": "node --test tests/*.test.mjs && node fonte/teste-seguranca.js"
+  }
+}

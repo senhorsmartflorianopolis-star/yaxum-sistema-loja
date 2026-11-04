@@ -1,0 +1,6 @@
+knowledge/processed/
+knowledge/reports/
+knowledge/raw/*.jsonl
+!knowledge/raw/.gitkeep
+*.log
+
