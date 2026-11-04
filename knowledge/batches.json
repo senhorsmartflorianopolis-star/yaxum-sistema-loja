@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "target_words": 10000000,
+  "batches": [
+    {
+      "id": "brain-foundations-001",
+      "status": "reviewed",
+      "language": "pt-BR",
+      "documents": 7,
+      "words": 1193,
+      "completed_at": "2026-11-04",
+      "topics": [
+        "anatomia macroscópica",
+        "consciência",
+        "processamento não consciente",
+        "sistemas de memória",
+        "interocepção e emoção",
+        "modelo psicanalítico",
+        "qualidade da evidência"
+      ]
+    }
+  ],
+  "next_batch": {
+    "id": "brain-systems-002",
+    "planned_topics": [
+      "redes de atenção e controle executivo",
+      "rede de modo padrão",
+      "saliência e tomada de decisão",
+      "hábitos, recompensa e motivação",
+      "mecanismos de defesa e regulação emocional"
+    ]
+  }
+}

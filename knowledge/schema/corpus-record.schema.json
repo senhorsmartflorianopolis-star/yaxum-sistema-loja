@@ -32,6 +32,21 @@
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" }
     },
+    "batch_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+    "knowledge_kind": {
+      "type": "string",
+      "enum": ["anatomia", "neurociencia", "ciencia-cognitiva", "modelo-psicanalitico", "historia-das-ideias"]
+    },
+    "evidence_level": {
+      "type": "string",
+      "enum": ["referencia-oficial", "revisao-sistematica", "revisao-cientifica", "pesquisa-primaria", "modelo-clinico-historico"]
+    },
+    "model_status": {
+      "type": "string",
+      "enum": ["anatomico", "funcional", "teorico", "clinico-historico"]
+    },
+    "epistemic_note": { "type": "string" },
+    "source_rights_note": { "type": "string" },
     "published_at": { "type": "string", "format": "date" },
     "retrieved_at": { "type": "string", "format": "date" },
     "notes": { "type": "string" }

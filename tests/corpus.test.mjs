@@ -34,3 +34,17 @@ test("divide texto com sobreposição e metadados", () => {
   assert.equal(chunks[1].text.split(" ")[0], "palavra80");
   assert.equal(chunks[0].metadata.license, "CC-BY-4.0");
 });
+
+test("preserva classificação científica e lote", () => {
+  const [chunk] = chunkRecord({
+    ...base,
+    batch_id: "brain-foundations-001",
+    knowledge_kind: "neurociencia",
+    evidence_level: "revisao-cientifica",
+    model_status: "funcional",
+    epistemic_note: "Associação funcional, não localização exclusiva."
+  }, config);
+  assert.equal(chunk.metadata.batch_id, "brain-foundations-001");
+  assert.equal(chunk.metadata.knowledge_kind, "neurociencia");
+  assert.match(chunk.metadata.epistemic_note, /não localização/);
+});

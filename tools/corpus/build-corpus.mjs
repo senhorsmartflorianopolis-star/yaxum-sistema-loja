@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const CONFIG_PATH = path.join(ROOT, "knowledge/config.json");
 const DEFAULT_INPUT = path.join(ROOT, "knowledge/raw");
+const SEED_INPUT = path.join(ROOT, "knowledge/seed");
 const DEFAULT_OUTPUT = path.join(ROOT, "knowledge/processed/chunks.jsonl");
 const DEFAULT_REPORT = path.join(ROOT, "knowledge/reports/manifest.json");
 
@@ -57,7 +58,13 @@ export function chunkRecord(record, config) {
         language: record.language,
         topics: record.topics,
         published_at: record.published_at || null,
-        retrieved_at: record.retrieved_at || null
+        retrieved_at: record.retrieved_at || null,
+        batch_id: record.batch_id || null,
+        knowledge_kind: record.knowledge_kind || null,
+        evidence_level: record.evidence_level || null,
+        model_status: record.model_status || null,
+        epistemic_note: record.epistemic_note || null,
+        source_rights_note: record.source_rights_note || null
       }
     });
     if (start + size >= words.length) break;
@@ -76,10 +83,16 @@ async function listJsonl(directory) {
   return files.sort();
 }
 
-export async function buildCorpus({ input = DEFAULT_INPUT, output = DEFAULT_OUTPUT, report = DEFAULT_REPORT } = {}) {
+export async function buildCorpus({ input = [SEED_INPUT, DEFAULT_INPUT], output = DEFAULT_OUTPUT, report = DEFAULT_REPORT } = {}) {
   const config = JSON.parse(await readFile(CONFIG_PATH, "utf8"));
-  const files = await listJsonl(input);
-  if (!files.length) throw new Error(`Nenhum arquivo .jsonl encontrado em ${input}`);
+  const inputs = Array.isArray(input) ? input : [input];
+  const files = (await Promise.all(inputs.map(async (directory) => {
+    try { return await listJsonl(directory); } catch (error) {
+      if (error.code === "ENOENT") return [];
+      throw error;
+    }
+  }))).flat().sort();
+  if (!files.length) throw new Error(`Nenhum arquivo .jsonl encontrado em ${inputs.join(", ")}`);
 
   const documentIds = new Set();
   const documentHashes = new Set();
@@ -89,6 +102,9 @@ export async function buildCorpus({ input = DEFAULT_INPUT, output = DEFAULT_OUTP
   let duplicateDocuments = 0;
   let duplicateChunks = 0;
   let inputWords = 0;
+  const byBatch = {};
+  const byTopic = {};
+  const byEvidence = {};
 
   for (const file of files) {
     const lines = (await readFile(file, "utf8")).split(/\r?\n/);
@@ -106,6 +122,11 @@ export async function buildCorpus({ input = DEFAULT_INPUT, output = DEFAULT_OUTP
       documentHashes.add(documentHash);
       documents += 1;
       inputWords += normalizedText.split(" ").filter(Boolean).length;
+      const batch = record.batch_id || "sem-lote";
+      byBatch[batch] = (byBatch[batch] || 0) + 1;
+      for (const topic of record.topics) byTopic[topic] = (byTopic[topic] || 0) + 1;
+      const evidence = record.evidence_level || "nao-informado";
+      byEvidence[evidence] = (byEvidence[evidence] || 0) + 1;
       for (const chunk of chunkRecord(record, config)) {
         if (chunkHashes.has(chunk.content_sha256)) { duplicateChunks += 1; continue; }
         chunkHashes.add(chunk.content_sha256);
@@ -127,6 +148,9 @@ export async function buildCorpus({ input = DEFAULT_INPUT, output = DEFAULT_OUTP
     chunks: chunks.length,
     duplicate_documents_removed: duplicateDocuments,
     duplicate_chunks_removed: duplicateChunks,
+    documents_by_batch: byBatch,
+    documents_by_topic: byTopic,
+    documents_by_evidence: byEvidence,
     allowed_licenses: config.allowed_licenses,
     output: path.relative(ROOT, output).replaceAll("\\", "/")
   };
@@ -135,7 +159,7 @@ export async function buildCorpus({ input = DEFAULT_INPUT, output = DEFAULT_OUTP
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const input = process.argv[2] ? path.resolve(process.argv[2]) : DEFAULT_INPUT;
+  const input = process.argv[2] ? path.resolve(process.argv[2]) : [SEED_INPUT, DEFAULT_INPUT];
   const output = process.argv[3] ? path.resolve(process.argv[3]) : DEFAULT_OUTPUT;
   try {
     const manifest = await buildCorpus({ input, output });

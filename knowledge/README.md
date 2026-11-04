@@ -4,7 +4,7 @@ Este diretório mantém o corpus de pesquisa separado do `cerebro.json` operacio
 
 ## Fluxo
 
-1. Coloque fontes em JSONL dentro de `knowledge/raw/`.
+1. Lotes revisados ficam em `knowledge/seed/`; coletas ainda não aprovadas ficam em `knowledge/raw/`.
 2. Registre uma fonte por linha conforme `schema/corpus-record.schema.json`.
 3. Execute `npm run corpus:build`.
 4. Use `knowledge/processed/chunks.jsonl` como entrada do indexador vetorial.
@@ -20,6 +20,12 @@ Por padrão, o construtor aceita apenas domínio público marcado e licenças CC
 - Banco vetorial: índice externo; não deve ser empacotado na landing page.
 
 O objetivo configurado é de 10 milhões de palavras. Quantidade não substitui qualidade: toda fonte precisa ter licença, autoria, URL e temas verificáveis.
+
+## Coleta progressiva
+
+Cada lote recebe um `batch_id`. O relatório agrupa documentos por lote, tema e nível de evidência, permitindo interromper, revisar ou remover uma etapa sem contaminar as demais. O primeiro lote cobre anatomia, consciência, processamento não consciente, memória, interocepção e o modelo psicanalítico.
+
+O histórico aprovado e o próximo lote planejado ficam em `batches.json`.
 
 ## Persuasão ética
 
