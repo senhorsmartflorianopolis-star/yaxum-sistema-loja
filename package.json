@@ -6,6 +6,7 @@
     "corpus:import:freud-dreams": "node tools/corpus/import-gutenberg.mjs",
     "corpus:import:historical-library": "node tools/corpus/import-gutenberg-library.mjs",
     "corpus:collect:wikipedia": "node tools/corpus/collect-wikipedia.mjs",
+    "voice:generate": "node tools/audio/openai-natural-voice.mjs",
     "test": "node --test tests/*.test.mjs && node fonte/teste-seguranca.js"
   }
 }
