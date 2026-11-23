@@ -1,6 +1,6 @@
 /* Pergunte ao cérebro sem Hostex nenhuma.
    npm run testar -- "qual a senha do wifi?"
-   npm run testar -- --imovel imovel-1 --sem-reserva "onde fica?"
+   npm run testar -- --imovel comfort --sem-reserva "onde fica?"
    npm run testar                      (modo conversa: digite as perguntas) */
 import readline from 'node:readline';
 import { lerEnv, carregarConfig } from '../src/config.js';

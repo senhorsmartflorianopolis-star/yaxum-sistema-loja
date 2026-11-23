@@ -1,0 +1,57 @@
+{
+  "_leia_me": "Anúncio do Airbnb: \"Urban House para 10 no Centro, perto da Beira-Mar\" (casa inteira), airbnb.com.br/rooms/1766888497874948011. Herda tudo de _casas/<casa>.json; aqui fica só o que é deste anúncio. hostex_ids = número da propriedade na Hostex (confira com \"npm run imoveis\"). Dados privados vão em cerebro/privado.json ou CEREBRO_PRIVADO, nunca aqui (repositório público).",
+  "nome": "Urban House (casa inteira para 10)",
+  "casa": "alvenaria",
+  "hostex_ids": [
+    12854071
+  ],
+  "notas_desligadas": [],
+  "variaveis": {
+    "capacidade": "A casa acomoda até 10 hóspedes: 2 quartos com cama de casal, 1 quarto com cama de casal e de solteiro (com ar-condicionado) e 1 quarto coletivo com 2 triliches e 1 cama de solteiro. Tem 1 banheiro para todo o grupo.",
+    "estacionamento": "A casa tem garagem com 2 vagas para o seu grupo.",
+    "animais": "Aceitamos 1 animal de estimação por reserva.",
+    "festas_visitas": "Não são permitidas festas nem eventos, e só podem entrar na casa as pessoas incluídas na reserva (até 10).",
+    "regras_casa": "Sem festas ou eventos, proibido fumar (inclusive vape), silêncio das 23h às 7h, no máximo 10 hóspedes e só entram as pessoas da reserva. Aceitamos 1 animal de estimação. A casa fica numa rua íngreme, com escadas, e não é indicada para pessoas com mobilidade reduzida.",
+    "cozinha": "A cozinha é equipada e só do seu grupo: geladeira, frigobar, fogão, forno, micro-ondas, chaleira elétrica, cafeteira elétrica, máquina de espresso, liquidificador, pratos e talheres. No quintal tem churrasqueira a carvão.",
+    "ar_condicionado": "Um dos quartos (o que tem cama de casal e de solteiro) tem ar-condicionado split; os outros têm ventilador.",
+    "lavar_roupa": "Tem lavanderia com máquina de lavar (uso gratuito), varal e ferro de passar. Não temos secadora.",
+    "tv": "Tem TV na casa.",
+    "checkout_instrucoes": "Na saída, é só fechar bem a porta.",
+    "roupa_cama_toalhas": null,
+    "malas": "Vou confirmar com a {{nome_anfitria}} e já te aviso.",
+    "checkin_antecipado": "Vou confirmar com a {{nome_anfitria}} se a casa já vai estar pronta e te aviso por aqui.",
+    "checkout_tarde": "Vou confirmar com a {{nome_anfitria}} se não tem outra reserva no mesmo dia e te aviso por aqui."
+  },
+  "traducoes": {
+    "es": {
+      "capacidade": "La casa aloja hasta 10 huéspedes: 2 habitaciones con cama doble, 1 habitación con cama doble e individual (con aire acondicionado) y 1 habitación compartida con 2 camas triples y 1 cama individual. Tiene 1 baño para todo el grupo.",
+      "estacionamento": "La casa tiene cochera con 2 lugares para tu grupo.",
+      "animais": "Aceptamos 1 mascota por reserva.",
+      "festas_visitas": "No se permiten fiestas ni eventos, y solo pueden entrar a la casa las personas incluidas en la reserva (hasta 10).",
+      "regras_casa": "Sin fiestas ni eventos, prohibido fumar (también vapear), silencio de 23 a 7 h, máximo 10 huéspedes y solo entran las personas de la reserva. Aceptamos 1 mascota. La casa está en una calle empinada, con escaleras, y no es apta para personas con movilidad reducida.",
+      "cozinha": "La cocina está equipada y es solo para tu grupo: heladera, frigobar, cocina, horno, microondas, pava eléctrica, cafetera eléctrica, máquina de espresso, licuadora, platos y cubiertos. En el patio hay parrilla a carbón.",
+      "ar_condicionado": "Una de las habitaciones (la de cama doble e individual) tiene aire acondicionado split; las otras tienen ventilador.",
+      "lavar_roupa": "Hay lavadero con lavarropas (de uso gratuito), tendedero y plancha. No tenemos secarropas.",
+      "tv": "Hay TV en la casa.",
+      "checkout_instrucoes": "Al irte, solo cerrá bien la puerta.",
+      "malas": "Lo confirmo con {{nome_anfitria}} y te aviso.",
+      "checkin_antecipado": "Confirmo con {{nome_anfitria}} si la casa ya va a estar lista y te aviso por acá.",
+      "checkout_tarde": "Confirmo con {{nome_anfitria}} si no hay otra reserva ese mismo día y te aviso por acá."
+    },
+    "en": {
+      "capacidade": "The house sleeps up to 10 guests: 2 bedrooms with a double bed, 1 bedroom with a double and a single bed (with air conditioning) and 1 shared room with 2 triple bunk beds and 1 single bed. There is 1 bathroom for the whole group.",
+      "estacionamento": "The house has a garage with 2 spots for your group.",
+      "animais": "We accept 1 pet per booking.",
+      "festas_visitas": "No parties or events, and only the people on the booking (up to 10) can enter the house.",
+      "regras_casa": "No parties or events, no smoking (vapes included), quiet hours from 11 pm to 7 am, a maximum of 10 guests and only the people on the booking. We accept 1 pet. The house is on a steep street with stairs and is not suitable for people with reduced mobility.",
+      "cozinha": "The kitchen is fully equipped and just for your group: fridge, mini fridge, stove, oven, microwave, electric kettle, electric coffee maker, espresso machine, blender, plates and cutlery. There is a charcoal barbecue in the backyard.",
+      "ar_condicionado": "One of the bedrooms (the one with a double and a single bed) has split air conditioning; the others have fans.",
+      "lavar_roupa": "There is a laundry area with a washing machine (free to use), a clothesline and an iron. There is no dryer.",
+      "tv": "There is a TV in the house.",
+      "checkout_instrucoes": "When you leave, just close the door firmly.",
+      "malas": "I will confirm with {{nome_anfitria}} and let you know.",
+      "checkin_antecipado": "I will check with {{nome_anfitria}} whether the house will be ready and let you know here.",
+      "checkout_tarde": "I will check with {{nome_anfitria}} whether there is another booking that day and let you know here."
+    }
+  }
+}

@@ -11,6 +11,8 @@ Instruções de entrada: chave, código da porta, portaria.
 - tem portaria?
 - precisa retirar chave em algum lugar?
 - como é o self check-in?
+- como faço o check-in?
+- ¿cómo hago el check-in?
 - ¿cómo entramos?
 - ¿dónde retiramos la llave?
 - ¿cuál es el código de la puerta?

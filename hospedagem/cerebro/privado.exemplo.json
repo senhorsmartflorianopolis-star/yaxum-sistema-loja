@@ -1,0 +1,18 @@
+{
+  "_leia_me": "Copie para cerebro/privado.json (o git ignora esse arquivo) ou cole o conteúdo, numa linha só, na variável CEREBRO_PRIVADO do servidor. Aqui ficam só os dados que não podem ficar públicos no GitHub. A chave é o nome da casa (alvenaria, madeira) ou do imóvel (comfort, office...). O que estiver aqui vence o _casas/*.json. Endereço, Wi-Fi e instruções de entrada só são enviados para hóspede com reserva confirmada.",
+  "alvenaria": {
+    "endereco": "Rua ..., nº ..., Centro, Florianópolis",
+    "wifi_nome": "",
+    "wifi_senha": "",
+    "checkin_instrucoes": "",
+    "traducoes": {
+      "es": { "checkin_instrucoes": "" },
+      "en": { "checkin_instrucoes": "" }
+    }
+  },
+  "madeira": {
+    "endereco": "",
+    "wifi_nome": "",
+    "wifi_senha": ""
+  }
+}

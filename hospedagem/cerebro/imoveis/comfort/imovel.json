@@ -1,0 +1,26 @@
+{
+  "_leia_me": "Anúncio do Airbnb: \"Quarto com projetor e mesa perto da Beira-Mar\" (Quarto Comfort), airbnb.com.br/rooms/1513249352509746794. Herda tudo de _casas/<casa>.json; aqui fica só o que é deste anúncio. hostex_ids = número da propriedade na Hostex (confira com \"npm run imoveis\"). Dados privados vão em cerebro/privado.json ou CEREBRO_PRIVADO, nunca aqui (repositório público).",
+  "nome": "Cine Comfort (quarto com projetor)",
+  "casa": "alvenaria",
+  "hostex_ids": [
+    12854066
+  ],
+  "notas_desligadas": [],
+  "variaveis": {
+    "capacidade": "O quarto tem cama de casal e acomoda até 2 hóspedes. Tem mesa e cadeira de escritório para trabalhar.",
+    "tv": "O quarto tem um projetor smart, que transforma o quarto num cantinho de cinema.",
+    "ar_condicionado": "O quarto não tem ar-condicionado, mas tem ventilador."
+  },
+  "traducoes": {
+    "es": {
+      "capacidade": "La habitación tiene cama doble y aloja hasta 2 huéspedes. Tiene escritorio y silla de oficina para trabajar.",
+      "tv": "La habitación tiene un proyector smart, que la convierte en un rincón de cine.",
+      "ar_condicionado": "La habitación no tiene aire acondicionado, pero tiene ventilador."
+    },
+    "en": {
+      "capacidade": "The room has a double bed and sleeps up to 2 guests. It has a desk and an office chair for work.",
+      "tv": "The room has a smart projector that turns it into a little home cinema.",
+      "ar_condicionado": "The room has no air conditioning, but it has a fan."
+    }
+  }
+}

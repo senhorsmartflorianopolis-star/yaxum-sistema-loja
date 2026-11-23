@@ -1,0 +1,20 @@
+{
+  "_leia_me": "Anúncio do Airbnb: \"Quarto individual a 5 min a pé da Beira-Mar\" (Quarto Windows), airbnb.com.br/rooms/1417525042770452493. Herda tudo de _casas/<casa>.json; aqui fica só o que é deste anúncio. hostex_ids = número da propriedade na Hostex (confira com \"npm run imoveis\"). Dados privados vão em cerebro/privado.json ou CEREBRO_PRIVADO, nunca aqui (repositório público).",
+  "nome": "Windows (quarto individual)",
+  "casa": "madeira",
+  "hostex_ids": [
+    12854069
+  ],
+  "notas_desligadas": [],
+  "variaveis": {
+    "capacidade": "É um quarto privativo de uso individual, com cama de casal e duas portas-janelas: acomoda somente a pessoa titular da reserva."
+  },
+  "traducoes": {
+    "es": {
+      "capacidade": "Es una habitación privada de uso individual, con cama doble y dos puertas ventana: solo se aloja la persona titular de la reserva."
+    },
+    "en": {
+      "capacidade": "It's a private room for one person, with a double bed and two French windows: only the person on the booking can stay."
+    }
+  }
+}

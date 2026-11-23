@@ -54,25 +54,50 @@ npm run testar -- --sem-reserva "qual a senha do wifi?"
 
 O `testar` usa o imóvel `exemplo`, que já vem preenchido.
 
-### 2. Preencher os dois imóveis da Yasmim
+### 2. Os imóveis da Yasmim (já preenchidos)
 
-Abra `cerebro/imoveis/imovel-1/imovel.json` (e o `imovel-2`) e preencha as `variaveis`: horários, Wi-Fi, estacionamento etc. **Campo vazio não quebra nada**: a pergunta sobre aquele assunto vai para a Yasmim até ser preenchido. O servidor lista o que falta quando liga.
+A Yasmim tem **duas casas** no Centro e **13 anúncios** no Airbnb. Cada anúncio está vinculado a uma propriedade na Hostex e cada propriedade aponta para uma ficha aqui:
+
+| Ficha (`cerebro/imoveis/`) | Casa | Anúncio do Airbnb | Propriedade na Hostex |
+|---|---|---|---|
+| `comfort` | alvenaria | Quarto com projetor e mesa | Cine Confort (12854066) |
+| `homely` | alvenaria | Quarto com frigobar e Smart TV | Homely (12854067) |
+| `office` | alvenaria | Quarto com ar-condicionado e mesa | Office (12854068) |
+| `dormitorio` | alvenaria | Camas 1 a 7 do dormitório | Dormitório Cama 1…7 (12854072 a 12854078) |
+| `urban-house` | alvenaria | Urban House para 10 (casa inteira) | Urban House (12854071) |
+| `windows` | madeira | Quarto individual a 5 min da Beira-Mar | Urban Windows (12854069) |
+| `closet` | madeira | Quarto individual com cama de casal e armário | Closet (12854070) |
+
+O que vale para a casa toda (horários, regras, cozinha, lavanderia, Wi-Fi, endereço) fica uma vez só em `cerebro/imoveis/_casas/alvenaria.json` e `madeira.json`. A ficha do anúncio guarda só o que é dela (capacidade, TV, ar-condicionado…) e vence a casa. `null` num campo da ficha apaga o valor herdado (a Urban House usa isso na toalha, que o anúncio não menciona).
+
+Tudo foi preenchido com o que está **público nos anúncios** (23/11/2026), em português, espanhol e inglês. Campo vazio continua indo para a Yasmim: lixo, transporte, crianças, documentos, TV do Office e do dormitório, toalha da Urban House. O servidor lista o que falta quando liga.
 
 ```bash
-npm run testar -- --imovel imovel-1 "que horas é o check-in?"
+npm run testar -- --imovel office "tem ar condicionado?"
 ```
 
-As `traducoes` (`es`, `en`) são opcionais. Sem elas, o texto em português aparece dentro da resposta em espanhol/inglês.
+#### Senha do Wi-Fi, endereço e código do cofre: NUNCA no GitHub
+
+Este repositório é **público**. Dado privado vai em um destes lugares (o servidor junta os dois):
+
+- **`cerebro/privado.json`** no servidor (o git ignora esse arquivo). Modelo: `cerebro/privado.exemplo.json`.
+- **Variável de ambiente `CEREBRO_PRIVADO`** com o mesmo JSON numa linha só (melhor para Railway, Render etc.).
+
+```json
+{"alvenaria":{"endereco":"Rua …, Centro","wifi_nome":"…","wifi_senha":"…"},"madeira":{"endereco":"…","wifi_nome":"…","wifi_senha":"…"}}
+```
+
+A chave é o nome da casa (`alvenaria`, `madeira`) ou da ficha (`office`…). Endereço, Wi-Fi e instruções de entrada só vão para hóspede com **reserva confirmada**. `checkin_instrucoes` já tem um texto genérico ("as instruções são enviadas pelo chat do Airbnb"); se quiser que o YAXUM mande o código do cofre, coloque a instrução real no privado.
 
 **Não coloque telefone, WhatsApp ou links** nas respostas: o Airbnb bloqueia mensagens com contato externo.
 
-### 3. Hostex Pró (teste grátis de 15 dias)
+### 3. Hostex Pró (feito em 23/11/2026)
 
-1. Ative o teste e conecte o Airbnb da Yasmim.
-2. **Desligue a HostGPT** (IA da própria Hostex) para não responderem os dois.
-3. Painel → *Settings → OpenAPI Settings → + Add new*. Crie um token do tipo **writable**.
-4. Copie `.env.exemplo` para `.env` e cole o token em `HOSTEX_TOKEN`. Invente um `TOKEN_ADMIN`.
-5. `npm run imoveis` mostra o número de cada imóvel na Hostex. Cole em `"hostex_ids": [123456]` no `imovel.json` certo.
+- [x] Conta criada (teste grátis de 15 dias) e Airbnb da Yasmim conectado.
+- [x] Os 13 anúncios vinculados, 1 propriedade por anúncio (o calendário de cada um continua como estava).
+- [x] Token **YAXUM** criado em *Configurações → API aberta*, com permissão de ler e escrever. Copie o token de lá (ícone de copiar) para `HOSTEX_TOKEN`.
+- [x] HostGPT (IA da Hostex) não está ligada; não ligue, para não responderem os dois.
+- [ ] Rodar `npm run imoveis` com o token: confirma que os números da tabela acima batem com os da API.
 
 ### 4. Pôr no ar em MODO TESTE
 
@@ -81,13 +106,15 @@ O servidor precisa de um endereço público **https**.
 - **Para testar** (grátis, no PC da loja): `npm start` e, em outra janela, `cloudflared tunnel --url http://localhost:3000`. Ele dá um endereço `https://….trycloudflare.com`, que muda a cada vez que roda.
 - **Fixo**: qualquer servidor Node ou Docker (tem `Dockerfile`). Use um plano que **não hiberna**: a Hostex espera só 5 segundos e não reenvia, então servidor dormindo perde aviso. Monte um volume em `/app/dados`.
 
-Depois:
+Variáveis do servidor: `MODO=teste`, `HOSTEX_TOKEN`, `TOKEN_ADMIN` (invente uma senha longa), `CEREBRO_PRIVADO` (ou o arquivo `cerebro/privado.json`) e, depois do passo abaixo, `HOSTEX_WEBHOOK_SECRET`. No Docker, monte um volume em `/app/dados`.
+
+Com o servidor no ar, de qualquer PC com Node e o `.env` com o token:
 
 ```bash
 npm run webhook -- https://SEU-ENDERECO/webhook/hostex
 ```
 
-Cole o `HOSTEX_WEBHOOK_SECRET` que aparecer no `.env` e reinicie.
+Cole o `HOSTEX_WEBHOOK_SECRET` que aparecer no servidor e reinicie. Confira em `https://SEU-ENDERECO/saude`.
 
 Em `MODO=teste` **nada vai para o hóspede**. Em cada conversa, a nota privada da Hostex mostra:
 

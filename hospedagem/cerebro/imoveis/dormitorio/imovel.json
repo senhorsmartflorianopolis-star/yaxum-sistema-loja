@@ -1,0 +1,41 @@
+{
+  "_leia_me": "Anúncio do Airbnb: as 7 camas do dormitório (\"Bed 1…7 in a shared dorm\" / \"Cama 5 em quarto compartilhado\"), ex.: airbnb.com.br/rooms/1563159910939552758. Herda tudo de _casas/<casa>.json; aqui fica só o que é deste anúncio. hostex_ids = número da propriedade na Hostex (confira com \"npm run imoveis\"). Dados privados vão em cerebro/privado.json ou CEREBRO_PRIVADO, nunca aqui (repositório público).",
+  "nome": "Dormitório (7 camas)",
+  "casa": "alvenaria",
+  "hostex_ids": [
+    12854072,
+    12854073,
+    12854074,
+    12854075,
+    12854076,
+    12854077,
+    12854078
+  ],
+  "notas_desligadas": [],
+  "variaveis": {
+    "capacidade": "A reserva é de 1 cama individual (não do quarto inteiro), num dormitório misto de até 7 pessoas. Cada cama suporta até 90 kg.",
+    "estacionamento": "A reserva de cama no dormitório não inclui vaga de garagem.",
+    "roupa_cama_toalhas": "Roupa de cama, cobertor e toalha estão incluídos.",
+    "lavar_roupa": "Tem máquina de lavar, varal e ferro de passar. Cada uso da máquina custa R$ 25, desde a primeira lavagem. Não temos secadora.",
+    "regras_casa": "É um dormitório compartilhado: sem visitas e sem festas, proibido fumar (inclusive vape), silêncio das 23h às 7h, respeito aos outros hóspedes e deixar a cozinha limpa depois de usar. O quarto não tem chave, armários nem cofre, então cuide dos seus pertences.",
+    "ar_condicionado": "O dormitório não tem ar-condicionado, mas tem ventilador."
+  },
+  "traducoes": {
+    "es": {
+      "capacidade": "La reserva es de 1 cama individual (no de la habitación entera), en un dormitorio mixto de hasta 7 personas. Cada cama soporta hasta 90 kg.",
+      "estacionamento": "La reserva de cama en el dormitorio no incluye cochera.",
+      "roupa_cama_toalhas": "Las sábanas, una manta y una toalla están incluidas.",
+      "lavar_roupa": "Hay lavarropas, tendedero y plancha. Cada uso del lavarropas cuesta R$ 25, desde el primer lavado. No tenemos secarropas.",
+      "regras_casa": "Es un dormitorio compartido: sin visitas ni fiestas, prohibido fumar (también vapear), silencio de 23 a 7 h, respeto a los demás huéspedes y dejar la cocina limpia después de usarla. La habitación no tiene llave, lockers ni caja fuerte, así que cuidá tus pertenencias.",
+      "ar_condicionado": "El dormitorio no tiene aire acondicionado, pero tiene ventilador."
+    },
+    "en": {
+      "capacidade": "You book 1 single bed (not the whole room) in a mixed dorm for up to 7 people. Each bed holds up to 90 kg.",
+      "estacionamento": "A dorm bed booking does not include a garage spot.",
+      "roupa_cama_toalhas": "Bed linen, a blanket and a towel are included.",
+      "lavar_roupa": "There is a washing machine, a clothesline and an iron. Each use of the machine costs R$ 25, starting with the first wash. There is no dryer.",
+      "regras_casa": "It's a shared dorm: no visitors and no parties, no smoking (vapes included), quiet hours from 11 pm to 7 am, respect for the other guests, and please clean the kitchen after using it. The room has no key, lockers or safe, so please look after your belongings.",
+      "ar_condicionado": "The dorm has no air conditioning, but it has fans."
+    }
+  }
+}

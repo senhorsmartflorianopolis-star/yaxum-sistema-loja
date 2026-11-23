@@ -1,0 +1,20 @@
+{
+  "_leia_me": "Anúncio do Airbnb: \"Quarto individual com cama de casal e armário\" (Quarto Closet), airbnb.com.br/rooms/1701705880590536473. Herda tudo de _casas/<casa>.json; aqui fica só o que é deste anúncio. hostex_ids = número da propriedade na Hostex (confira com \"npm run imoveis\"). Dados privados vão em cerebro/privado.json ou CEREBRO_PRIVADO, nunca aqui (repositório público).",
+  "nome": "Closet (quarto individual com armário)",
+  "casa": "madeira",
+  "hostex_ids": [
+    12854070
+  ],
+  "notas_desligadas": [],
+  "variaveis": {
+    "capacidade": "É um quarto privativo de uso individual, com cama de casal e armário de seis portas: acomoda somente a pessoa titular da reserva."
+  },
+  "traducoes": {
+    "es": {
+      "capacidade": "Es una habitación privada de uso individual, con cama doble y un placard de seis puertas: solo se aloja la persona titular de la reserva."
+    },
+    "en": {
+      "capacidade": "It's a private room for one person, with a double bed and a six-door wardrobe: only the person on the booking can stay."
+    }
+  }
+}

@@ -2,3 +2,4 @@
 dados/
 node_modules/
 *.log
+cerebro/privado.json

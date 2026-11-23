@@ -117,9 +117,43 @@ test('detecta o idioma', () => {
 });
 
 test('imóvel sem dados preenchidos passa tudo para a anfitriã e diz o que falta', () => {
-  const vazio = cerebro.imovel('imovel-1');
+  const vazio = cerebro.imovel('comfort');
   const d = cerebro.responder(vazio, 'qual a senha do wifi?', { temReserva: true });
   assert.equal(d.acao, 'escalar');
   assert.match(d.motivo, /falta preencher wifi_nome, wifi_senha/);
   assert.ok(vazio.faltando.wifi_senha);
+});
+
+test('anúncio herda da casa, sobrescreve o que é dele e null apaga', () => {
+  const office = cerebro.imovel('office');
+  const homely = cerebro.imovel('homely');
+  assert.equal(office.casa, 'alvenaria');
+  assert.match(cerebro.responder(office, 'tem ar condicionado?', { temReserva: true }).resposta, /ar-condicionado split/);
+  assert.match(cerebro.responder(homely, 'tem ar condicionado?', { temReserva: true }).resposta, /não tem ar-condicionado/);
+  assert.match(cerebro.responder(homely, 'que horas é o check-in?', { temReserva: true }).resposta, /14h/);
+  assert.match(cerebro.responder(homely, 'What time is check in?', { temReserva: true }).resposta, /2 pm/);
+  /* a casa inteira não herda a toalha dos quartos: vai para a anfitriã */
+  assert.equal(cerebro.responder(cerebro.imovel('urban-house'), 'tem toalha de banho?', { temReserva: true }).acao, 'escalar');
+  assert.equal(cerebro.imovelPorHostexId('12854075').nome, 'dormitorio');
+});
+
+test('dados privados vêm de fora do repositório e vencem a casa, inclusive nas traduções', () => {
+  const c = carregarCerebro(path.join(RAIZ, 'cerebro'), {
+    privado: { alvenaria: { wifi_nome: 'UrbanCentro', wifi_senha: 'segredo123', checkin_instrucoes: 'O código do cofre é 4321.' } },
+  });
+  const comfort = c.imovel('comfort');
+  const wifi = c.responder(comfort, 'qual a senha do wifi?', { temReserva: true });
+  assert.equal(wifi.acao, 'responder');
+  assert.match(wifi.resposta, /UrbanCentro.*segredo123/);
+  assert.doesNotMatch(c.responder(comfort, 'qual a senha do wifi?', { temReserva: false }).resposta, /segredo123/);
+  /* o texto genérico em espanhol da casa não pode vencer a instrução real em português */
+  assert.match(c.responder(comfort, '¿cómo entro? ¿dónde está la llave?', { temReserva: true }).resposta, /4321/);
+  assert.ok(!c.imovel('windows').variaveis.wifi_senha, 'senha da alvenaria não pode vazar para a casa de madeira');
+});
+
+test('CEREBRO_PRIVADO no ambiente é lido e erro de formato avisa', async () => {
+  const { lerPrivado } = await import('../src/cerebro.js');
+  const pasta = path.join(RAIZ, 'cerebro');
+  assert.deepEqual(lerPrivado(pasta, { CEREBRO_PRIVADO: '{"madeira":{"wifi_senha":"x"}}' }).madeira, { wifi_senha: 'x' });
+  assert.throws(() => lerPrivado(pasta, { CEREBRO_PRIVADO: '{quebrado' }), /CEREBRO_PRIVADO tem erro de formato/);
 });

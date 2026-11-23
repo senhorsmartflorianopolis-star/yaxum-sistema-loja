@@ -1,0 +1,23 @@
+{
+  "_leia_me": "Anúncio do Airbnb: \"Quarto com ar-condicionado e mesa no Centro\" (Office), airbnb.com.br/rooms/1532773670073408116. Herda tudo de _casas/<casa>.json; aqui fica só o que é deste anúncio. hostex_ids = número da propriedade na Hostex (confira com \"npm run imoveis\"). Dados privados vão em cerebro/privado.json ou CEREBRO_PRIVADO, nunca aqui (repositório público).",
+  "nome": "Office (quarto com ar-condicionado e mesa)",
+  "casa": "alvenaria",
+  "hostex_ids": [
+    12854068
+  ],
+  "notas_desligadas": [],
+  "variaveis": {
+    "capacidade": "O quarto tem cama de casal e cama de solteiro e acomoda até 3 hóspedes. Tem mesa e cadeira para trabalhar.",
+    "ar_condicionado": "Tem sim! O quarto tem ar-condicionado split."
+  },
+  "traducoes": {
+    "es": {
+      "capacidade": "La habitación tiene cama doble y cama individual y aloja hasta 3 huéspedes. Tiene escritorio y silla para trabajar.",
+      "ar_condicionado": "¡Sí! La habitación tiene aire acondicionado split."
+    },
+    "en": {
+      "capacidade": "The room has a double bed and a single bed and sleeps up to 3 guests. It has a desk and a chair for work.",
+      "ar_condicionado": "Yes! The room has split air conditioning."
+    }
+  }
+}

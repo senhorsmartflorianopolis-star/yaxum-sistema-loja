@@ -1,0 +1,26 @@
+{
+  "_leia_me": "Anúncio do Airbnb: \"Quarto com frigobar e Smart TV perto da Beira-Mar\" (Quarto Homely), airbnb.com.br/rooms/1513266519728496861. Herda tudo de _casas/<casa>.json; aqui fica só o que é deste anúncio. hostex_ids = número da propriedade na Hostex (confira com \"npm run imoveis\"). Dados privados vão em cerebro/privado.json ou CEREBRO_PRIVADO, nunca aqui (repositório público).",
+  "nome": "Homely (quarto com frigobar e Smart TV)",
+  "casa": "alvenaria",
+  "hostex_ids": [
+    12854067
+  ],
+  "notas_desligadas": [],
+  "variaveis": {
+    "capacidade": "O quarto tem cama de casal e acomoda até 2 hóspedes. Tem Smart TV e frigobar.",
+    "tv": "O quarto tem Smart TV.",
+    "ar_condicionado": "O quarto não tem ar-condicionado, mas tem ventilador."
+  },
+  "traducoes": {
+    "es": {
+      "capacidade": "La habitación tiene cama doble y aloja hasta 2 huéspedes. Tiene Smart TV y frigobar.",
+      "tv": "La habitación tiene Smart TV.",
+      "ar_condicionado": "La habitación no tiene aire acondicionado, pero tiene ventilador."
+    },
+    "en": {
+      "capacidade": "The room has a double bed and sleeps up to 2 guests. It has a smart TV and a mini fridge.",
+      "tv": "The room has a smart TV.",
+      "ar_condicionado": "The room has no air conditioning, but it has a fan."
+    }
+  }
+}

@@ -140,26 +140,103 @@ export function textoDaVariavel(imovel, chave, idioma = 'pt') {
   return r.faltam.length ? '' : r.texto;
 }
 
+/* ---------- casas e dados privados ---------- */
+function lerJson(arq, pasta) {
+  try { return JSON.parse(fs.readFileSync(arq, 'utf8')); } catch (e) {
+    throw new Error(`O arquivo ${path.relative(pasta, arq)} tem erro de formato: ${e.message}`);
+  }
+}
+
+/**
+ * Dados privados (senha do Wi-Fi, endereço, código da porta) não vão para o
+ * GitHub. Ficam em cerebro/privado.json (fora do git) e/ou na variável de
+ * ambiente CEREBRO_PRIVADO (o mesmo JSON numa linha só). Formato:
+ *   { "<casa ou imóvel>": { "wifi_senha": "...", "traducoes": { "es": { ... } } } }
+ * A variável de ambiente vence o arquivo.
+ */
+export function lerPrivado(pasta, env = process.env) {
+  const dados = {};
+  const somar = (obj, origem) => {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error(`${origem} precisa ser um objeto JSON.`);
+    for (const [k, v] of Object.entries(obj)) if (!k.startsWith('_')) dados[k] = { ...(dados[k] || {}), ...v };
+  };
+  const arq = path.join(pasta, 'privado.json');
+  if (fs.existsSync(arq)) somar(lerJson(arq, pasta), 'cerebro/privado.json');
+  if (env.CEREBRO_PRIVADO && env.CEREBRO_PRIVADO.trim()) {
+    let obj;
+    try { obj = JSON.parse(env.CEREBRO_PRIVADO); } catch (e) { throw new Error(`CEREBRO_PRIVADO tem erro de formato: ${e.message}`); }
+    somar(obj, 'CEREBRO_PRIVADO');
+  }
+  return dados;
+}
+
+/* Junta as camadas de dados de um imóvel, da mais geral para a mais
+   específica. Campo vazio ("") não apaga o que veio antes; null apaga.
+   Quando uma camada define o texto em português, as traduções antigas
+   daquele campo caem, para o hóspede em espanhol/inglês não receber uma
+   versão desatualizada. */
+function juntarCamadas(camadas) {
+  const variaveis = {};
+  const traducoes = {};
+  for (const c of camadas) {
+    if (!c) continue;
+    const { traducoes: tr = {}, ...vars } = c.variaveis ? { ...c.variaveis, traducoes: c.traducoes } : c;
+    for (const [k, v] of Object.entries(vars)) {
+      if (k.startsWith('_')) continue;
+      if (v === null) { delete variaveis[k]; } else if (String(v).trim() === '') { continue; } else { variaveis[k] = String(v); }
+      for (const idioma of Object.keys(traducoes)) delete traducoes[idioma][k];
+    }
+    for (const [idioma, campos] of Object.entries(tr || {})) {
+      traducoes[idioma] = traducoes[idioma] || {};
+      for (const [k, v] of Object.entries(campos || {})) {
+        if (v === null) delete traducoes[idioma][k];
+        else if (String(v).trim() !== '') traducoes[idioma][k] = String(v);
+      }
+    }
+  }
+  return { variaveis, traducoes };
+}
+
 /* ---------- carga ---------- */
 /**
  * @param {string} pasta  pasta do cérebro (com comum/ e imoveis/)
- * @param {{ ligacoes?: Record<string,string> }} [opcoes]  ligações extras id-da-Hostex → imóvel (usado na simulação)
+ * @param {{ ligacoes?: Record<string,string>, privado?: object }} [opcoes]
+ *   ligacoes: ligações extras id-da-Hostex → imóvel (usado na simulação)
+ *   privado: dados privados (padrão: cerebro/privado.json + CEREBRO_PRIVADO)
+ *
+ * Um imóvel pode herdar de uma casa: "casa": "alvenaria" no imovel.json lê
+ * imoveis/_casas/alvenaria.json (Wi-Fi, endereço, horários de todos os
+ * anúncios daquela casa). O que o imovel.json define vence a casa.
  */
-export function carregarCerebro(pasta, { ligacoes = {} } = {}) {
+export function carregarCerebro(pasta, { ligacoes = {}, privado } = {}) {
   const comuns = lerNotasDaPasta(path.join(pasta, 'comum'));
   const pastaImoveis = path.join(pasta, 'imoveis');
+  const dadosPrivados = privado || lerPrivado(pasta);
   const imoveis = new Map();
   const porHostex = new Map();
   const avisos = [];
+  const casas = new Map();
+  const lerCasa = (casa, quem) => {
+    if (!casas.has(casa)) {
+      const arq = path.join(pastaImoveis, '_casas', `${casa}.json`);
+      if (!/^[a-z0-9-]+$/i.test(casa) || !fs.existsSync(arq)) throw new Error(`${quem} usa "casa": "${casa}", mas não existe imoveis/_casas/${casa}.json.`);
+      casas.set(casa, lerJson(arq, pasta));
+    }
+    return casas.get(casa);
+  };
   const nomes = fs.existsSync(pastaImoveis) ? fs.readdirSync(pastaImoveis).sort() : [];
   for (const nome of nomes) {
     const dir = path.join(pastaImoveis, nome);
     const arq = path.join(dir, 'imovel.json');
-    if (!fs.statSync(dir).isDirectory() || !fs.existsSync(arq)) continue;
-    let cfg;
-    try { cfg = JSON.parse(fs.readFileSync(arq, 'utf8')); } catch (e) {
-      throw new Error(`O arquivo ${path.relative(pasta, arq)} tem erro de formato: ${e.message}`);
-    }
+    if (nome.startsWith('_') || !fs.statSync(dir).isDirectory() || !fs.existsSync(arq)) continue;
+    const cfg = lerJson(arq, pasta);
+    const casa = cfg.casa ? lerCasa(String(cfg.casa), `${nome}/imovel.json`) : null;
+    const dados = juntarCamadas([
+      casa,
+      cfg.casa ? dadosPrivados[cfg.casa] : null,
+      { variaveis: cfg.variaveis || {}, traducoes: cfg.traducoes || {} },
+      dadosPrivados[nome],
+    ]);
     const desligadas = new Set((cfg.notas_desligadas || []).map(String));
     const mapa = new Map(comuns.map((n) => [n.id, n]));
     for (const n of lerNotasDaPasta(dir)) mapa.set(n.id, n);
@@ -170,9 +247,10 @@ export function carregarCerebro(pasta, { ligacoes = {} } = {}) {
     const imovel = {
       nome,
       titulo: cfg.nome || nome,
+      casa: cfg.casa || null,
       hostexIds: (cfg.hostex_ids || []).map(String).filter(Boolean),
-      variaveis: cfg.variaveis || {},
-      traducoes: cfg.traducoes || {},
+      variaveis: dados.variaveis,
+      traducoes: dados.traducoes,
       notas: Object.fromEntries(analisadas.map((n) => [n.id, n])),
       E,
     };
@@ -192,6 +270,9 @@ export function carregarCerebro(pasta, { ligacoes = {} } = {}) {
       porHostex.set(hid, nome);
     }
     imoveis.set(nome, imovel);
+  }
+  for (const chave of Object.keys(dadosPrivados)) {
+    if (!casas.has(chave) && !imoveis.has(chave)) avisos.push(`dados privados para "${chave}", mas não existe casa nem imóvel com esse nome (erro de digitação?).`);
   }
   for (const [hid, nome] of Object.entries(ligacoes)) {
     if (!imoveis.has(nome)) throw new Error(`Ligação para imóvel inexistente: ${nome}`);
@@ -302,7 +383,7 @@ export function responder(imovel, texto, { temReserva = false, nomeHospede = '' 
     const grupo = escolherGrupo(n, idioma, temReserva);
     if (!grupo) return escalar(`"${n.titulo}" só vai para hóspede com reserva confirmada`, 'pergunta só para hóspede com reserva');
     const r = preencher(grupo.join('\n\n'), imovel, idioma);
-    if (r.faltam.length) return escalar(`falta preencher ${r.faltam.join(', ')} no imovel.json de ${imovel.nome} (nota "${n.titulo}")`, `falta preencher ${r.faltam.join(', ')}`);
+    if (r.faltam.length) return escalar(`falta preencher ${r.faltam.join(', ')} em ${imovel.nome}${imovel.casa ? ` (casa ${imovel.casa})` : ''} (nota "${n.titulo}")`, `falta preencher ${r.faltam.join(', ')}`);
     corpos.push(r.texto);
   }
   if (saud) corpos[0] = `${abertura(idioma, saud, primeiroNome(nomeHospede))} ${corpos[0]}`;
